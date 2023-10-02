@@ -10,4 +10,4 @@ pypng==0.20220715.0
 python-dotenv==0.19.2
 qrcode==7.4.2
 typing_extensions==4.8.0
-Werkzeug==2.0.1
+Werkzeug==2.2.3
