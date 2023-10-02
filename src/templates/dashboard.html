@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <h1>Welcome to the Dashboard</h1>
+
+    <!-- Display user information here -->
+    <p>Name: {{ current_user.name }}</p>
+    <p>Email: {{ current_user.email }}</p>
+    <p>Role: {{ current_user.role }}</p>
+
+    <!-- List of classes -->
+    <h2>Classes:</h2>
+    <ul>
+      {% for class in classes %}
+      <li>{{ class.class_name }}</li>
+      {% endfor %}
+    </ul>
+
+    <a href="/logout">Logout</a>
+  </body>
+</html>

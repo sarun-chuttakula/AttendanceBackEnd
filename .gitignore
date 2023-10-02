@@ -1,0 +1,16 @@
+# virtual environment
+venv
+
+# env
+.env
+*.pyc
+
+# img folder
+/images
+.vscode
+*.jpg
+*.png
+*.gif
+*.mp4
+
+examples.txt
