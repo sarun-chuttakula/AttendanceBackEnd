@@ -40,16 +40,23 @@ def signup_form():
 # Render the dashboard with classes (replace with your logic)
 
 
+# @app.route("/dashboard", methods=["GET"])
+# def dashboard():
+#     # Replace with logic to fetch user data and classes
+#     user_data = {
+#         "name": "John Doe",
+#         "email": "john@example.com",
+#         "role": "teacher"
+#     }
+#     classes = ["Class A", "Class B", "Class C"]
+#     return render_template("dashboard.html", current_user=user_data, classes=classes)
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
-    # Replace with logic to fetch user data and classes
-    user_data = {
-        "name": "John Doe",
-        "email": "john@example.com",
-        "role": "teacher"
-    }
-    classes = ["Class A", "Class B", "Class C"]
-    return render_template("dashboard.html", current_user=user_data, classes=classes)
+    # Fetch and sort classes by creation date (latest first)
+    classes = Classes().get_all_classes_sorted_by_date()
+    print(classes)
+
+    return render_template("dashboard.html", classes=classes)
 
 # Render the logout page
 
@@ -403,31 +410,76 @@ def serve_qr_code_image(image_name):
 
 
 @app.route("/join_class", methods=["POST"])
-def join_class():
-    try:
-        qr_code_data = request.json.get("qr_code_data")
+# def join_class():
+#     try:
+#         qr_code_data = request.json.get("qr_code_data")
 
-        # Verify the student's identity based on QR code data
-        class_details = Classes().verify_qr_code_data(qr_code_data)
+#         # Verify the student's identity based on QR code data
+#         class_details = Classes().verify_qr_code_data(qr_code_data)
+
+#         if class_details:
+#             # Implement logic to add the student to the class
+
+#             # Fetch the QR code image for display
+#             qr_code_image_path = fetch_qr_code_image(
+#                 class_details['qr_code_path'])
+
+#             return jsonify({
+#                 "message": "Student joined the class",
+#                 "class_details": class_details,
+#                 "qr_code_image_path": qr_code_image_path
+#             }), 200
+#         else:
+#             return jsonify({
+#                 "message": "Invalid QR code",
+#                 "data": None,
+#                 "error": "Unauthorized"
+#             }), 401
+#     except Exception as e:
+#         return jsonify({
+#             "message": "Failed to join class",
+#             "error": str(e),
+#             "data": None
+#         }), 500
+@app.route("/join_class/<string:class_id>", methods=["POST"])
+def join_class(class_id):
+    try:
+        # Get the class details based on the class ID
+        class_details = Classes().get_class_by_id(class_id)
 
         if class_details:
-            # Implement logic to add the student to the class
+            # Extract the user's email from the device (replace with your method)
+            # user_email = User().get_user_email_from_device(request)
+            user_email = "teacher@gmail.com"
 
-            # Fetch the QR code image for display
-            qr_code_image_path = fetch_qr_code_image(
-                class_details['qr_code_path'])
+            # Check if the user's email exists in the user collection
+            user = User().find_user_by_email(user_email)
+            # user = "teacher@gmail.com"
+            if user:
+                # Implement logic to mark the user as present in a new collection
+                Classes().mark_user_as_present(class_id, user["_id"])
 
-            return jsonify({
-                "message": "Student joined the class",
-                "class_details": class_details,
-                "qr_code_image_path": qr_code_image_path
-            }), 200
+                # Fetch the QR code image for display
+                qr_code_image_path = fetch_qr_code_image(class_details['qr_code_path'])
+
+                return jsonify({
+                    "message": "Student joined the class",
+                    "class_details": class_details,
+                    "user_email": user_email,  # Include the user's email
+                    "qr_code_image_path": qr_code_image_path
+                }), 200
+            else:
+                return jsonify({
+                    "message": "User with email not found",
+                    "data": None,
+                    "error": "Unauthorized"
+                }), 401
         else:
             return jsonify({
-                "message": "Invalid QR code",
+                "message": "Invalid class ID",
                 "data": None,
-                "error": "Unauthorized"
-            }), 401
+                "error": "Not Found"
+            }), 404
     except Exception as e:
         return jsonify({
             "message": "Failed to join class",
@@ -466,4 +518,4 @@ def forbidden(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=3000)
+    app.run(debug=True, host='0.0.0.0', port=4000)

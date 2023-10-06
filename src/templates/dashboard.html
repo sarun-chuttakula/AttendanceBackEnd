@@ -1,24 +1,38 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
   </head>
   <body>
     <h1>Welcome to the Dashboard</h1>
 
-    <!-- Display user information here -->
-    <p>Name: {{ current_user.name }}</p>
-    <p>Email: {{ current_user.email }}</p>
-    <p>Role: {{ current_user.role }}</p>
-
-    <!-- List of classes -->
-    <h2>Classes:</h2>
+    <!-- Check if there are classes to display -->
+    {% if classes %}
+    <h2>Your Classes</h2>
     <ul>
+      <!-- Loop through the classes and display them -->
       {% for class in classes %}
-      <li>{{ class.class_name }}</li>
+      <li>
+        <strong>Class Name:</strong> {{ class.class_name }}<br />
+        <strong>Created Date:</strong> {{ class.created_date }}<br />
+        <strong>Timings:</strong> {{ class.timings }}<br />
+        <strong>Meeting Link:</strong>
+        <a href="{{ class.meet_link }}" target="_blank">{{ class.meet_link }}</a
+        ><br />
+        <strong>QR Code:</strong>
+        <img src="{{ class.qr_code_path }}" alt="QR Code" /><br />
+        <strong>Section:</strong> {{ class.section }}<br />
+        <strong>Branch:</strong> {{ class.branch }}<br />
+        <!-- Add more class details as needed -->
+      </li>
       {% endfor %}
     </ul>
+    {% else %}
+    <p>No classes found.</p>
+    {% endif %}
 
-    <a href="/logout">Logout</a>
+    <!-- ... your other content ... -->
   </body>
 </html>

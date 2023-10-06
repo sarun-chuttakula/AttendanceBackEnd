@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app, send_file
-
+from pymongo import DESCENDING
 load_dotenv()
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -187,6 +187,28 @@ class User:
         img_path = os.path.join(img_directory, img_name)
         img.save(img_path)
         return img_name
+    
+    def get_user_email_from_device(self,request):
+    # You may implement logic here to obtain the user's email from the device.
+    # For example, if the email is stored in a cookie:
+    # user_email = request.cookies.get('user_email')
+    # Or if it's stored in a session:
+    # user_email = request.session.get('user_email')
+
+    # For this example, let's assume you retrieve the email from a request header
+        user_email = request.headers.get('X-User-Email')
+
+        return user_email
+    
+    
+    def find_user_by_email(self, email):
+        # Search for a user by email in the database
+        user = db.users.find_one({"email": email, "active": True})
+        if user:
+            user["_id"] = str(user["_id"])
+            return user
+        else:
+            return None
 
 
 class Server:
@@ -203,7 +225,28 @@ class Server:
 class Classes:
 
     def __init__(self):
+        self.client = MongoClient(DATABASE_URL)
+        self.db = self.client.myDatabase
         return
+    
+    def get_all_classes_sorted_by_date(self):
+        try:
+            # Assuming you have a MongoDB collection called 'classes'
+            # Replace 'your_database_name' and 'your_collection_name' with actual values
+            db = self.client["myDatabase"]
+            collection = db["classes"]
+
+            # Fetch all classes sorted by 'created_date' in descending order (latest first)
+            classes = collection.find().sort("created_date", DESCENDING)
+
+            # Convert the cursor to a list of classes
+            class_list = list(classes)
+
+            return class_list
+        except Exception as e:
+            # Handle any exceptions or errors here
+            print(f"Error in get_all_classes_sorted_by_date: {str(e)}")
+            return []
 
     def generate_unique_qr_code(self, class_details):
         try:
@@ -248,3 +291,33 @@ class Classes:
         except Exception as e:
             print(f"Failed to store class data in the database: {str(e)}")
             return None
+        
+    def get_class_by_id(self, class_id):
+        try:
+            class_data = self.db.classes.find_one({"_id": class_id})
+            if class_data:
+                return {
+                    "class_id": str(class_data["_id"]),
+                    "qr_code_path": class_data["qr_code_path"],
+                    # Include other class details as needed
+                }
+            else:
+                return None
+        except Exception as e:
+            print(f"Failed to retrieve class data by ID: {str(e)}")
+            return None
+        
+    def mark_user_as_present(self, class_id, user_id):
+        try:
+            # Implement logic to mark the user as present in a new collection or database table
+            # For example, you can create a new collection named "attendance" and insert the user's presence record.
+            attendance_data = {
+                "class_id": class_id,
+                "user_id": user_id,
+                "timestamp": datetime.datetime.now()
+            }
+            db.attendance.insert_one(attendance_data)
+            return True
+        except Exception as e:
+            print(f"Failed to mark user as present: {str(e)}")
+            return False
