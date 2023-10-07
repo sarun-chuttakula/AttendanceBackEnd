@@ -206,6 +206,7 @@ class User:
         user = db.users.find_one({"email": email, "active": True})
         if user:
             user["_id"] = str(user["_id"])
+            print(user,"user")
             return user
         else:
             return None
@@ -311,6 +312,7 @@ class Classes:
         try:
             # Implement logic to mark the user as present in a new collection or database table
             # For example, you can create a new collection named "attendance" and insert the user's presence record.
+            print(class_id, user_id,"======")
             attendance_data = {
                 "class_id": class_id,
                 "user_id": user_id,
@@ -321,3 +323,22 @@ class Classes:
         except Exception as e:
             print(f"Failed to mark user as present: {str(e)}")
             return False
+        
+    def get_class_by_name(self, class_name):
+        try:
+            class_data = self.db.classes.find_one({"class_name": class_name})
+            if class_data:
+                return {
+                    "class_id": str(class_data["_id"]),
+                    "class_name": class_data["class_name"],
+                    "timings": class_data["timings"],
+                    "meet_link": class_data["meet_link"],
+                    "qr_code_path": class_data["qr_code_path"],
+                    "section": class_data["section"],
+                    "branch": class_data["branch"]
+                }
+            else:
+                return None
+        except Exception as e:
+            print(f"Failed to retrieve class by name: {str(e)}")
+            return None

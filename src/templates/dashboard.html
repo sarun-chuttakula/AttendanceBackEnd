@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <!-- Include Bootstrap CSS from a CDN -->
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
@@ -14,11 +13,9 @@
     <div class="container">
       <h1>Welcome to the Dashboard</h1>
 
-      <!-- Check if there are classes to display -->
       {% if classes %}
       <h2>Your Classes</h2>
       <ul class="list-group">
-        <!-- Loop through the classes and display them -->
         {% for class in classes %}
         <li class="list-group-item">
           <strong>Class Name:</strong> {{ class.class_name }}<br />
@@ -30,22 +27,28 @@
           ><br />
           <strong>QR Code:</strong>
           <img
-            src="{{ class.qr_code_path }}"
+            src="{{ url_for('serve_qr_code_image', image_name=class.qr_code_path.split('/')[-1]) }}"
             alt="QR Code"
             class="img-fluid"
           /><br />
           <strong>Section:</strong> {{ class.section }}<br />
           <strong>Branch:</strong> {{ class.branch }}<br />
-          <!-- Add more class details as needed -->
+
+          {% if current_user and current_user.role == "student" %}
+          <button
+            type="button"
+            class="btn btn-primary join-class-button"
+            data-class-name="{{ class.class_name }}"
+          >
+            Join
+          </button>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>
       {% else %}
       <p>No classes found.</p>
-      {% endif %}
-
-      <!-- Only show the form for creating a class if the user has the "teacher" or "admin" role -->
-      {% if current_user and (current_user.role == "teacher" or
+      {% endif %} {% if current_user and (current_user.role == "teacher" or
       current_user.role == "admin") %}
       <h2>Create a Class</h2>
       <form action="/create_class" method="POST">
@@ -107,13 +110,41 @@
         <button type="submit" class="btn btn-primary">Create Class</button>
       </form>
       {% endif %}
-
-      <!-- ... your other content ... -->
     </div>
 
-    <!-- Include Bootstrap JS and jQuery from a CDN for certain Bootstrap features -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const joinButtons = document.querySelectorAll(".join-class-button");
+
+        joinButtons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            const className = button.getAttribute("data-class-name");
+
+            fetch("/join_class", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ class_name: className }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.message) {
+                  alert(result.message);
+                } else if (result.error) {
+                  alert(result.error);
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          });
+        });
+      });
+    </script>
   </body>
 </html>
