@@ -4,35 +4,116 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
+    <!-- Include Bootstrap CSS from a CDN -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
   </head>
   <body>
-    <h1>Welcome to the Dashboard</h1>
+    <div class="container">
+      <h1>Welcome to the Dashboard</h1>
 
-    <!-- Check if there are classes to display -->
-    {% if classes %}
-    <h2>Your Classes</h2>
-    <ul>
-      <!-- Loop through the classes and display them -->
-      {% for class in classes %}
-      <li>
-        <strong>Class Name:</strong> {{ class.class_name }}<br />
-        <strong>Created Date:</strong> {{ class.created_date }}<br />
-        <strong>Timings:</strong> {{ class.timings }}<br />
-        <strong>Meeting Link:</strong>
-        <a href="{{ class.meet_link }}" target="_blank">{{ class.meet_link }}</a
-        ><br />
-        <strong>QR Code:</strong>
-        <img src="{{ class.qr_code_path }}" alt="QR Code" /><br />
-        <strong>Section:</strong> {{ class.section }}<br />
-        <strong>Branch:</strong> {{ class.branch }}<br />
-        <!-- Add more class details as needed -->
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p>No classes found.</p>
-    {% endif %}
+      <!-- Check if there are classes to display -->
+      {% if classes %}
+      <h2>Your Classes</h2>
+      <ul class="list-group">
+        <!-- Loop through the classes and display them -->
+        {% for class in classes %}
+        <li class="list-group-item">
+          <strong>Class Name:</strong> {{ class.class_name }}<br />
+          <strong>Created Date:</strong> {{ class.created_date }}<br />
+          <strong>Timings:</strong> {{ class.timings }}<br />
+          <strong>Meeting Link:</strong>
+          <a href="{{ class.meet_link }}" target="_blank"
+            >{{ class.meet_link }}</a
+          ><br />
+          <strong>QR Code:</strong>
+          <img
+            src="{{ class.qr_code_path }}"
+            alt="QR Code"
+            class="img-fluid"
+          /><br />
+          <strong>Section:</strong> {{ class.section }}<br />
+          <strong>Branch:</strong> {{ class.branch }}<br />
+          <!-- Add more class details as needed -->
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No classes found.</p>
+      {% endif %}
 
-    <!-- ... your other content ... -->
+      <!-- Only show the form for creating a class if the user has the "teacher" or "admin" role -->
+      {% if current_user and (current_user.role == "teacher" or
+      current_user.role == "admin") %}
+      <h2>Create a Class</h2>
+      <form action="/create_class" method="POST">
+        <div class="form-group">
+          <label for="class_name">Class Name:</label>
+          <input
+            type="text"
+            id="class_name"
+            name="class_name"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="timings">Timings:</label>
+          <input
+            type="text"
+            id="timings"
+            name="timings"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="meet_link">Meeting Link:</label>
+          <input
+            type="text"
+            id="meet_link"
+            name="meet_link"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="section">Section:</label>
+          <input
+            type="text"
+            id="section"
+            name="section"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="branch">Branch:</label>
+          <input
+            type="text"
+            id="branch"
+            name="branch"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Class</button>
+      </form>
+      {% endif %}
+
+      <!-- ... your other content ... -->
+    </div>
+
+    <!-- Include Bootstrap JS and jQuery from a CDN for certain Bootstrap features -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </body>
 </html>

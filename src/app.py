@@ -1,11 +1,12 @@
-from flask import send_file
+from flask import redirect, send_file, url_for
 import datetime
 import jwt
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 # from bson.objectid import ObjectId
-
+from flask_cors import CORS
+from flask_cors import cross_origin
 from validate import validate_email_and_password, validate_user
 from services import User, Server, Classes
 from auth_middleware import jwttoken_required, role_required
@@ -13,6 +14,8 @@ from auth_middleware import jwttoken_required, role_required
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+# CORS(app)  
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # print(SECRET_KEY)
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
@@ -52,11 +55,43 @@ def signup_form():
 #     return render_template("dashboard.html", current_user=user_data, classes=classes)
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
-    # Fetch and sort classes by creation date (latest first)
-    classes = Classes().get_all_classes_sorted_by_date()
-    print(classes)
+    try:
+        # Retrieve the token from the query parameters
+        token = request.args.get('token')
 
-    return render_template("dashboard.html", classes=classes)
+        # Verify the token
+        try:
+            decoded_token = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({
+                "message": "Token has expired",
+                "error": "Unauthorized"
+            }), 401
+        except jwt.InvalidTokenError:
+            return jsonify({
+                "message": "Invalid token",
+                "error": "Unauthorized"
+            }), 401
+
+        # Fetch user data based on the decoded token
+        user = User().get_user_by_id(decoded_token["id"])
+
+        if user:
+            # Fetch and sort classes by creation date (latest first)
+            classes = Classes().get_all_classes_sorted_by_date()
+            return render_template("dashboard.html", classes=classes, current_user=user)
+
+        return jsonify({
+            "message": "User not found",
+            "error": "Unauthorized"
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            "message": "Something went wrong",
+            "error": str(e),
+            "data": None
+        }), 500
 
 # Render the logout page
 
@@ -173,7 +208,10 @@ def login_form():
     return render_template("login.html")
 
 # Handle login form submission
+# Import the required modules
+import jwt
 
+# ...
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -186,7 +224,7 @@ def login():
                 "error": "Bad request"
             }), 400
 
-        # validate input
+        # Validate input
         is_validated = validate_email_and_password(
             data.get('email'), data.get('password'))
 
@@ -245,6 +283,142 @@ def login():
         }), 500
 
 
+# @app.route("/login", methods=["POST"])
+# @cross_origin(supports_credentials=True)
+# def login():
+#     try:
+#         data = request.json
+#         if not data:
+#             return jsonify({
+#                 "message": "Please provide user details",
+#                 "data": None,
+#                 "error": "Bad request"
+#             }), 400
+
+#         # validate input
+#         is_validated = validate_email_and_password(
+#             data.get('email'), data.get('password'))
+
+#         if is_validated is not True:
+#             return jsonify({
+#                 "message": "Invalid email or password",
+#                 "data": None,
+#                 "error": "Unauthorized"
+#             }), 401
+
+#         user = User().login(data["email"], data["password"])
+#         if user:
+#             try:
+#                 # Generate the JWT token
+#                 payload = {
+#                     'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=6),
+#                     'id': user["_id"],
+#                     'name': user["name"],
+#                     'role': user["role"],
+#                     'section': user.get("section", ""),
+#                     'branch': user.get("branch", ""),
+#                 }
+#                 access_token = jwt.encode(
+#                     payload,
+#                     app.config["JWT_SECRET_KEY"],
+#                     algorithm="HS256"
+#                 )
+
+#                 # Set the token as a cookie in the response
+#                 response = jsonify({
+#                     "access_token": access_token,
+#                     'id': user["_id"],
+#                     'name': user["name"],
+#                     'role': user["role"],
+#                     'section': user["section"],
+#                     'branch': user["branch"]
+#                 })
+                
+#                 # Set the access token as a cookie with HttpOnly and Secure flags
+#                 response.set_cookie('access_token', access_token, httponly=True, secure=True)
+                
+#                 return response, 200
+
+#             except Exception as e:
+#                 return jsonify({
+#                     "message": "Something went wrong",
+#                     "error": str(e),
+#                     "data": None
+#                 }), 500
+#         else:
+#             return jsonify({
+#                 "message": "Invalid email or password",
+#                 "data": None,
+#                 "error": "Unauthorized"
+#             }), 401
+
+#     except Exception as e:
+#         return jsonify({
+#             "message": "Something went wrong",
+#             "error": str(e),
+#             "data": None
+#         }), 500
+# def login():
+#     try:
+#         data = request.json
+#         if not data:
+#             return jsonify({
+#                 "message": "Please provide user details",
+#                 "data": None,
+#                 "error": "Bad request"
+#             }), 400
+
+#         # Validate input (you can keep this part)
+#         is_validated = validate_email_and_password(
+#             data.get('email'), data.get('password'))
+
+#         if is_validated is not True:
+#             return jsonify({
+#                 "message": "Invalid email or password",
+#                 "data": None,
+#                 "error": "Unauthorized"
+#             }), 401
+
+#         user = User().login(data["email"], data["password"])
+#         if user:
+#             try:
+#                 # Generate the JWT token
+#                 payload = {
+#                     'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=6),
+#                     'id': user["_id"],
+#                     'name': user["name"],
+#                     'role': user["role"],
+#                     'section': user.get("section", ""),
+#                     'branch': user.get("branch", ""),
+#                 }
+#                 access_token = jwt.encode(
+#                     payload,
+#                     app.config["JWT_SECRET_KEY"],
+#                     algorithm="HS256"
+#                 )
+
+#                 # Redirect to the dashboard route with the token as a query parameter
+#                 return redirect(url_for('dashboard', token=access_token))
+
+#             except Exception as e:
+#                 return jsonify({
+#                     "message": "Something went wrong",
+#                     "error": str(e),
+#                     "data": None
+#                 }), 500
+#         else:
+#             return jsonify({
+#                 "message": "Invalid email or password",
+#                 "data": None,
+#                 "error": "Unauthorized"
+#             }), 401
+
+#     except Exception as e:
+#         return jsonify({
+#             "message": "Something went wrong",
+#             "error": str(e),
+#             "data": None
+#         }), 500
 # it will take the section argument ex: /sectionusers?section="cse-e"
 @app.route("/sectionusers", methods=["GET"])
 @jwttoken_required
@@ -386,7 +560,7 @@ def create_class(current_user):
         }), 500
 
 
-@app.route("/qr_code_image/<path:image_name>", methods=["GET"])
+@app.route("/qr-code/<path:image_name>", methods=["GET"])
 def serve_qr_code_image(image_name):
     try:
         # Define the directory where QR code images are stored
