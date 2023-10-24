@@ -1,5 +1,5 @@
 from flask import redirect, send_file, url_for
-import datetime
+from datetime import datetime
 import jwt
 import os
 from dotenv import load_dotenv
@@ -8,7 +8,7 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from flask_cors import cross_origin
 from validate import validate_email_and_password, validate_user
-from services import User, Server, Classes
+from services import User, Server, Classes,db
 from auth_middleware import jwttoken_required, role_required
 
 load_dotenv()
@@ -78,7 +78,8 @@ def dashboard():
 
         if user:
             # Fetch and sort classes by creation date (latest first)
-            classes = Classes().get_all_classes_sorted_by_date()
+            # classes = Classes().get_all_classes_sorted_by_date()
+            classes = list(db.classes.find({}))
             return render_template("dashboard.html", classes=classes, current_user=user)
 
         return jsonify({
@@ -540,7 +541,22 @@ def changepassword(current_user):
 @role_required(allowed_roles=["teacher"])
 def create_class(current_user):
     try:
+        # Check for timing conflicts with existing classes
         class_details = request.json
+        start_time = datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
+        end_time = datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
+
+        conflicts = db.classes.find({
+            "$or": [
+                {"start_time": {"$lte": start_time}, "end_time": {"$gte": start_time}},
+                {"start_time": {"$lte": end_time}, "end_time": {"$gte": end_time}},
+                {"start_time": {"$gte": start_time}, "end_time": {"$lte": end_time}},
+            ]
+        })
+
+        if conflicts.count() > 0:
+            # Timing conflict exists, return an alert
+            return jsonify({"error": "A class with conflicting timings already exists."})
 
         # Generate a unique QR code with class details and a random name
         qr_code_path = Classes().generate_unique_qr_code(class_details)

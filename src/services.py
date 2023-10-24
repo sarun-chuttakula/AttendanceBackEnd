@@ -1,7 +1,7 @@
 import bson
 import os
 import jwt
-import datetime
+from datetime import datetime
 import socket
 import uuid
 # import base64
@@ -255,7 +255,7 @@ class Classes:
             qr_code_name = str(uuid.uuid4()) + ".png"
 
             # Create a string that represents the class details
-            class_info = f"Class: {class_details['class_name']}, Timings: {class_details['timings']}, Meet Link: {class_details['meet_link']},section: {class_details['section']},branch: {class_details['branch']}"
+            class_info = f"Class: {class_details['class_name']}, Timings: {class_details['start_time']}-{class_details['end_time']}, Meet Link: {class_details['meet_link']},section: {class_details['section']},branch: {class_details['branch']}"
             qr = qrcode.QRCode(
                 version=1,
                 error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -278,10 +278,14 @@ class Classes:
     def store_class_in_database(self, class_details, qr_code_path):
         try:
             class_id = str(uuid.uuid4())
+            start_time = datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
+            end_time = datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
             class_data = {
                 "_id": class_id,
                 "class_name": class_details["class_name"],
-                "timings": class_details["timings"],
+                # "timings": class_details["start_time"]-class_details["end_time"],
+                "start_time": start_time,
+                "end_time": end_time,
                 "meet_link": class_details["meet_link"],
                 "qr_code_path": qr_code_path,
                 "section": class_details["section"],

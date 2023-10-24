@@ -20,7 +20,8 @@
         <li class="list-group-item">
           <strong>Class Name:</strong> {{ class.class_name }}<br />
           <strong>Created Date:</strong> {{ class.created_date }}<br />
-          <strong>Timings:</strong> {{ class.timings }}<br />
+          <strong>Start Time:</strong> {{ class.start_time }}<br />
+          <strong>End Time:</strong> {{ class.end_time }}<br />
           <strong>Meeting Link:</strong>
           <a href="{{ class.meet_link }}" target="_blank"
             >{{ class.meet_link }}</a
@@ -51,7 +52,7 @@
       {% endif %} {% if current_user and (current_user.role == "teacher" or
       current_user.role == "admin") %}
       <h2>Create a Class</h2>
-      <form action="/create_class" method="POST">
+      <form id="create-class-form" method="POST">
         <div class="form-group">
           <label for="class_name">Class Name:</label>
           <input
@@ -64,11 +65,22 @@
         </div>
 
         <div class="form-group">
-          <label for="timings">Timings:</label>
+          <label for="start_time">Start Time:</label>
           <input
-            type="text"
-            id="timings"
-            name="timings"
+            type="datetime-local"
+            id="start_time"
+            name="start_time"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="end_time">End Time:</label>
+          <input
+            type="datetime-local"
+            id="end_time"
+            name="end_time"
             class="form-control"
             required
           />
@@ -118,7 +130,13 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
+        // Function to extract the token from the query parameters
+        function getTokenFromParams() {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get("token");
+        }
         const joinButtons = document.querySelectorAll(".join-class-button");
+        const createClassForm = document.getElementById("create-class-form");
 
         joinButtons.forEach(function (button) {
           button.addEventListener("click", function () {
@@ -143,6 +161,41 @@
                 console.error(error);
               });
           });
+        });
+        createClassForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          const formData = new FormData(createClassForm);
+          const classData = {};
+          formData.forEach((value, key) => {
+            classData[key] = value;
+          });
+
+          const token = getTokenFromParams(); // Get the token from the URL
+
+          if (token) {
+            fetch("/create_class", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Include the token as a Bearer token
+              },
+              body: JSON.stringify(classData),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.message) {
+                  alert(result.message);
+                } else if (result.error) {
+                  alert(result.error);
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          } else {
+            // Handle the case when the token is missing in the URL
+            alert("Token is missing in the URL.");
+          }
         });
       });
     </script>
