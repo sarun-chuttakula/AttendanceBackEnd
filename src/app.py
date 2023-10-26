@@ -790,7 +790,7 @@ def join_class():
 def serve_qr_code_image(image_name):
     try:
         # Define the directory where QR code images are stored
-        qr_code_directory = "/Users/ch.sarun/Documents/MyCodes/Code/Projects/AttendanceBackEnd/images/qr-code/"
+        qr_code_directory = os.environ.get("QR_CODE_DIRECTORY")
 
         # Define the complete path to the requested QR code image
         qr_code_path = os.path.join(qr_code_directory, image_name)
