@@ -1,7 +1,7 @@
 import bson
 import os
 import jwt
-from datetime import datetime
+from datetime import datetime, timedelta
 import socket
 import uuid
 # import base64
@@ -33,7 +33,7 @@ class User:
         if user:
             return
         refresh_token = jwt.encode({
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=365),
+            'exp': datetime.utcnow() + timedelta(hours=6),
         },
             current_app.config["JWT_SECRET_KEY"],
             algorithm="HS256"

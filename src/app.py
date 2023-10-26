@@ -543,8 +543,9 @@ def create_class(current_user):
     try:
         # Check for timing conflicts with existing classes
         class_details = request.json
-        start_time = datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
-        end_time = datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
+        start_time = datetime.datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
+        end_time = datetime.datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
+
 
         conflicts = db.classes.find({
             "$or": [
