@@ -15,5 +15,5 @@ python-dotenv==1.0.0
 pytz==2023.3.post1
 qrcode==7.4.2
 typing_extensions==4.8.0
-Werkzeug==3.0.0
+Werkzeug==3.0.1
 zope.interface==6.1
