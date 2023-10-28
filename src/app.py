@@ -601,7 +601,7 @@ def create_class(current_user):
 # Sample code for students to join a class using a QR code
 
 
-@app.route("/join_class", methods=["POST"])
+# @app.route("/join_class", methods=["POST"])
 # def join_class():
 #     try:
 #         qr_code_data = request.json.get("qr_code_data")
@@ -633,7 +633,7 @@ def create_class(current_user):
 #             "error": str(e),
 #             "data": None
 #         }), 500
-@app.route("/join_class/<string:class_id>", methods=["POST"])
+# @app.route("/join_class/<string:class_id>", methods=["POST"])
 # def join_class(class_id):
 #     try:
 #         # Get the class details based on the class ID
@@ -731,11 +731,14 @@ def create_class(current_user):
 #             "error": str(e),
 #             "data": None
 #         }), 500
+@app.route("/join_class", methods=["POST"])
+@jwttoken_required
+@role_required(allowed_roles=["admin","student","teacher"])
 def join_class():
     try:
-        # Get the class details based on the class name
-        token = request.args.get("token")  # Get the token from the query parameters
-        user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
+        # # Get the class details based on the class name
+        # token = request.args.get("token")  # Get the token from the query parameters
+        # user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
         data = request.json
         class_name = data.get('class_name')
         print(class_name)
@@ -743,12 +746,16 @@ def join_class():
         print(class_details)
         if class_details:
             # Extract the user's email from the device (replace with your method)
-            user_email = "ch.sarun0904@gmail.com"  # Replace with the student's email
-
+            token = None
+            if "Authorization" in request.headers:
+                token = request.headers["Authorization"].split(" ")[1]
             # Check if the user's email exists in the user collection
             user = User().find_user_by_email(user_email)
-            print(user, "ejhrgbkrjgnerwkgnk")
+            decoded_token = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+            print(decoded_token)
+            user_email = decoded_token["email"]  # Replace with the student's email
 
+            # print(user, "ejhrgbkrjgnerwkgnk")
             if user:
                 # Implement logic to mark the user as present in a new collection
                 print("panduuuuuuuuuuu")
@@ -849,4 +856,4 @@ def forbidden(e):
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=4000)
+    app.run(debug=True, host='0.0.0.0', port=4004)

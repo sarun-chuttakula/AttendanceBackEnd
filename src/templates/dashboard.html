@@ -39,7 +39,7 @@
           <button
             type="button"
             class="btn btn-primary join-class-button"
-            data-class-name="{{ class.class_name }}"
+            data-class-name="{{ class.class_name,  }}"
           >
             Join
           </button>
@@ -99,7 +99,7 @@
 
         <div class="form-group">
           <label for="section">Section:</label>
-          <input
+          <inputlogin
             type="text"
             id="section"
             name="section"
@@ -142,13 +142,14 @@
           button.addEventListener("click", function () {
             const className = button.getAttribute("data-class-name");
             const token = getTokenFromParams();
-
             fetch("/join_class", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+
               },
-              body: JSON.stringify({ class_name: className }),
+              body: JSON.stringify({ class_name: className, jwt:token }),
             })
               .then((response) => response.json())
               .then((result) => {
