@@ -6,11 +6,12 @@ import services as services
 from datetime import datetime, timedelta
 
 
-def generate_access_token(user_id):
+def generate_access_token(user_id,user_email):
     # Generate a new access token with a 24-hour expiration time
     expiration = datetime.utcnow() + timedelta(hours=24)
     payload = {
         "id": user_id,
+        "email": user_email,
         "exp": expiration,
     }
     access_token = jwt.encode(

@@ -141,6 +141,7 @@
         joinButtons.forEach(function (button) {
           button.addEventListener("click", function () {
             const className = button.getAttribute("data-class-name");
+            const token = getTokenFromParams();
 
             fetch("/join_class", {
               method: "POST",

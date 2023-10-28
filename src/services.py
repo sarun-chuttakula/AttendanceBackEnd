@@ -335,7 +335,8 @@ class Classes:
                 return {
                     "class_id": str(class_data["_id"]),
                     "class_name": class_data["class_name"],
-                    "timings": class_data["timings"],
+                    "start_time": class_data["start_time"],
+                    "end_time": class_data["end_time"],
                     "meet_link": class_data["meet_link"],
                     "qr_code_path": class_data["qr_code_path"],
                     "section": class_data["section"],

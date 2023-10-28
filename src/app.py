@@ -245,6 +245,7 @@ def login():
                     'id': user["_id"],
                     'name': user["name"],
                     'role': user["role"],
+                    'email': user["email"],
                     'section': user.get("section", ""),
                     'branch': user.get("branch", ""),
                 }
@@ -730,10 +731,11 @@ def create_class(current_user):
 #             "error": str(e),
 #             "data": None
 #         }), 500
-
 def join_class():
     try:
         # Get the class details based on the class name
+        token = request.args.get("token")  # Get the token from the query parameters
+        user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
         data = request.json
         class_name = data.get('class_name')
         print(class_name)
@@ -784,6 +786,20 @@ def join_class():
             "error": str(e),
             "data": None
         }), 500
+
+def extract_email_from_token(token, secret_key):
+    try:
+        # Decode the token to access its payload
+        decoded_payload = jwt.decode(token, secret_key, algorithms=["HS256"])
+        # Extract the email from the payload
+        user_email = decoded_payload.get("email")
+        return user_email
+    except jwt.ExpiredSignatureError:
+        # Handle token expiration
+        return None
+    except jwt.DecodeError:
+        # Handle token decoding errors
+        return None
 
 # Function to fetch the QR code image based on the image path
 @app.route("/qrcode/<image_name>", methods=["GET"])
