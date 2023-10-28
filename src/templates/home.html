@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Page</title>
+  <style>
+    body {
+      text-align: center;
+      padding: 100px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: #fff;
+      text-decoration: none;
+      border: none;
+      border-radius: 5px;
+      margin: 10px;
+    }
+
+    .btn-login {
+      background-color: #007BFF;
+    }
+
+    .btn-signup {
+      background-color: #28A745;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Welcome to Our Website</h1>
+  <p>Please select an option to continue:</p>
+  <button id="login-button" class="btn btn-login">Login</button>
+  <button id="signup-button" class="btn btn-signup">Sign Up</button>
+  <script>
+    document.getElementById("signup-button").addEventListener("click", function () {
+      window.location.href = "/signup";
+    });
+    document.getElementById("login-button").addEventListener("click", function () {
+        window.location.href = "/login";
+      });
+  </script>
+</body>
+
+</html>

@@ -1,90 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
-    <!-- Include Bootstrap CSS from a CDN -->
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-    />
-  </head>
-  <body>
-    <div class="container">
-      {% if current_user %}
-      <h1>Welcome, {{ current_user.name }}!</h1>
-      <!-- Dashboard content goes here -->
-      <a href="/logout" class="btn btn-primary">Logout</a>
-      {% else %}
-      <h1>Login</h1>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            class="form-control"
-            required
-          />
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            class="form-control"
-            required
-          />
-        </div>
-        <button type="button" onclick="submitForm()" class="btn btn-primary">
-          Login
-        </button>
-      </form>
-      <p style="color: red" id="error">{% if error %}{{ error }}{% endif %}</p>
-      <!-- login.html -->
-      <script>
-        function submitForm() {
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
 
-          // Create a JSON object
-          const data = {
-            email: email,
-            password: password,
-          };
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <!-- Include Bootstrap CSS from a CDN -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
 
-          // Send the JSON data to the server
-          fetch("/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
+  <!-- Add custom CSS styles -->
+  <style>
+    /* Custom CSS styles go here */
+    body {
+      background-color: #f4f4f4;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      margin-top: 50px;
+    }
+
+    #loginForm {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    #error {
+      margin-top: 10px;
+      color: red;
+    }
+
+    h1 {
+      text-align: center;
+      color: #007bff; /* Blue color */
+      font-size: 70px; /* Adjust font size as needed */
+      margin-top: 20px; /* Add margin for spacing */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    {% if current_user %}
+    <h1>Welcome, {{ current_user.name }}!</h1>
+    <!-- Dashboard content goes here -->
+    <a href="/logout" class="btn btn-primary">Logout</a>
+    {% else %}
+    <br><br>
+    <h1>Login</h1>
+    <br><br>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" class="form-control" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" class="form-control" required />
+      </div>
+      <button type="button" onclick="submitForm()"  class="btn btn-primary">
+        Login
+      </button>
+    </form>
+    <p id="error"></p>
+    <!-- login.html -->
+    <script>
+      function submitForm() {
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        // Create a JSON object
+        const data = {
+          email: email,
+          password: password,
+        };
+
+        // Send the JSON data to the server
+        fetch("/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.error) {
+              // Handle login error
+              document.getElementById("error").innerText = result.error;
+            } else if (result.access_token) {
+              // Redirect to the dashboard URL with the token as a query parameter
+              window.location.href = `/dashboard?token=${result.access_token}`;
+            }
           })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.error) {
-                // Handle login error
-                document.getElementById("error").innerText = result.error;
-              } else if (result.access_token) {
-                // Redirect to the dashboard URL with the token as a query parameter
-                window.location.href = `/dashboard?token=${result.access_token}`;
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        }
-      </script>
-      {% endif %}
-    </div>
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+    </script>
+    {% endif %}
+  </div>
 
-    <!-- Include Bootstrap JS and jQuery from a CDN for certain Bootstrap features -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  </body>
+  <!-- Include Bootstrap JS and jQuery from a CDN for certain Bootstrap features -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
 </html>

@@ -75,7 +75,7 @@ class User:
                 "role": role,
                 "active": True
             })
-        print(new_user)
+        # print(new_user)
         return self.get_user_by_id(new_user.inserted_id)
 
     def get_all_users(self):
@@ -206,7 +206,7 @@ class User:
         user = db.users.find_one({"email": email, "active": True})
         if user:
             user["_id"] = str(user["_id"])
-            print(user,"user")
+            # print(user,"user")
             return user
         else:
             return None
@@ -314,23 +314,25 @@ class Classes:
         
     def mark_user_as_present(self, class_id, user_id):
         try:
-            # Implement logic to mark the user as present in a new collection or database table
-            # For example, you can create a new collection named "attendance" and insert the user's presence record.
-            print(class_id, user_id,"======")
             attendance_data = {
                 "class_id": class_id,
                 "user_id": user_id,
-                "timestamp": datetime.datetime.now()
+                "timestamp": datetime.now()
             }
             db.attendance.insert_one(attendance_data)
             return True
         except Exception as e:
-            print(f"Failed to mark user as present: {str(e)}")
+            current_app.logger.error(f"Failed to mark user as present: {str(e)}")
             return False
         
     def get_class_by_name(self, class_name):
         try:
-            class_data = self.db.classes.find_one({"class_name": class_name})
+            # current_app.logger.info(f"Searching for class with name: {class_name}")
+            classes = db.classes.find()
+            # current_app.logger.info(classes)
+            class_data = db.classes.find_one({"class_name": class_name})
+            # current_app.logger.info(class_data)
+
             if class_data:
                 return {
                     "class_id": str(class_data["_id"]),
@@ -345,5 +347,5 @@ class Classes:
             else:
                 return None
         except Exception as e:
-            print(f"Failed to retrieve class by name: {str(e)}")
-            return None
+            current_app.logger.error(f"Failed to retrieve class by name: {str(e)}")
+        return None

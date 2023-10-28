@@ -10,12 +10,16 @@ from flask_cors import cross_origin
 from validate import validate_email_and_password, validate_user
 from services import User, Server, Classes,db
 from auth_middleware import jwttoken_required, role_required
+from flask import redirect
 
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
-# CORS(app)  
+CORS(app, resources={r"/*": {"origins": ["http://localhost:4004", "http://192.168.77.62:4004"]}})
+
+# CORS(app, resources={r"/*": {"origins": "http://localhost:4004"}})
+# CORS(app) 
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # print(SECRET_KEY)
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
@@ -24,7 +28,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route("/")
 def hello():
-    return "Hello World!"
+    return render_template("home.html")
 
 # Render the login form
 
@@ -94,12 +98,9 @@ def dashboard():
             "data": None
         }), 500
 
-# Render the logout page
-
-
 @app.route("/logout", methods=["GET"])
 def logout():
-    return render_template("logout.html")
+    return redirect("/")
 
 
 @app.route("/users", methods=["POST"])
@@ -130,7 +131,7 @@ def add_user():
         print("createuser")
         if not user:
             return {
-                "message": "User already exists",
+                "message": "User email or name already exists",
                 "error": "Conflict",
                 "data": None
             }, 409
@@ -210,7 +211,6 @@ def login_form():
 
 # Handle login form submission
 # Import the required modules
-import jwt
 
 # ...
 
@@ -543,12 +543,12 @@ def changepassword(current_user):
 def create_class(current_user):
     try:
         # Check for timing conflicts with existing classes
+        # Check for timing conflicts with existing classes
         class_details = request.json
         start_time = datetime.datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
         end_time = datetime.datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
 
-
-        conflicts = db.classes.find({
+        conflicts = db.classes.count_documents({
             "$or": [
                 {"start_time": {"$lte": start_time}, "end_time": {"$gte": start_time}},
                 {"start_time": {"$lte": end_time}, "end_time": {"$gte": end_time}},
@@ -556,7 +556,7 @@ def create_class(current_user):
             ]
         })
 
-        if conflicts.count() > 0:
+        if conflicts > 0:
             # Timing conflict exists, return an alert
             return jsonify({"error": "A class with conflicting timings already exists."})
 
@@ -577,110 +577,14 @@ def create_class(current_user):
             "data": None
         }), 500
 
-
-# @app.route("/qr-code/<path:image_name>", methods=["GET"])
-# def serve_qr_code_image(image_name):
-#     try:
-#         # Define the directory where QR code images are stored
-#         # qr_code_directory = "images/qr-code/"
-#         qr_code_directory = "/Users/ch.sarun/Documents/MyCodes/Code/Projects/attendence/server/images/qr-code/"
-
-#         # Define the complete path to the requested QR code image
-#         qr_code_path = os.path.join(qr_code_directory, image_name)
-
-#         # Serve the QR code image using Flask's send_file
-#         return send_file(qr_code_path, mimetype='image/png')
-#     except Exception as e:
-#         # Handle any errors that may occur when serving the image
-#         return jsonify({
-#             "message": "Failed to serve QR code image",
-#             "error": str(e),
-#             "data": None
-#         }), 500
-
-# Sample code for students to join a class using a QR code
-
-
 # @app.route("/join_class", methods=["POST"])
+# @jwttoken_required
+# @role_required(allowed_roles=["admin","student","teacher"])
 # def join_class():
 #     try:
-#         qr_code_data = request.json.get("qr_code_data")
-
-#         # Verify the student's identity based on QR code data
-#         class_details = Classes().verify_qr_code_data(qr_code_data)
-
-#         if class_details:
-#             # Implement logic to add the student to the class
-
-#             # Fetch the QR code image for display
-#             qr_code_image_path = fetch_qr_code_image(
-#                 class_details['qr_code_path'])
-
-#             return jsonify({
-#                 "message": "Student joined the class",
-#                 "class_details": class_details,
-#                 "qr_code_image_path": qr_code_image_path
-#             }), 200
-#         else:
-#             return jsonify({
-#                 "message": "Invalid QR code",
-#                 "data": None,
-#                 "error": "Unauthorized"
-#             }), 401
-#     except Exception as e:
-#         return jsonify({
-#             "message": "Failed to join class",
-#             "error": str(e),
-#             "data": None
-#         }), 500
-# @app.route("/join_class/<string:class_id>", methods=["POST"])
-# def join_class(class_id):
-#     try:
-#         # Get the class details based on the class ID
-#         class_details = Classes().get_class_by_id(class_id)
-
-#         if class_details:
-#             # Extract the user's email from the device (replace with your method)
-#             # user_email = User().get_user_email_from_device(request)
-#             user_email = "teacher@gmail.com"
-
-#             # Check if the user's email exists in the user collection
-#             user = User().find_user_by_email(user_email)
-#             # user = "teacher@gmail.com"
-#             if user:
-#                 # Implement logic to mark the user as present in a new collection
-#                 Classes().mark_user_as_present(class_id, user["_id"])
-
-#                 # Fetch the QR code image for display
-#                 qr_code_image_path = fetch_qr_code_image(class_details['qr_code_path'])
-
-#                 return jsonify({
-#                     "message": "Student joined the class",
-#                     "class_details": class_details,
-#                     "user_email": user_email,  # Include the user's email
-#                     "qr_code_image_path": qr_code_image_path
-#                 }), 200
-#             else:
-#                 return jsonify({
-#                     "message": "User with email not found",
-#                     "data": None,
-#                     "error": "Unauthorized"
-#                 }), 401
-#         else:
-#             return jsonify({
-#                 "message": "Invalid class ID",
-#                 "data": None,
-#                 "error": "Not Found"
-#             }), 404
-#     except Exception as e:
-#         return jsonify({
-#             "message": "Failed to join class",
-#             "error": str(e),
-#             "data": None
-#         }), 500
-# def join_class():
-#     try:
-#         # Get the class details based on the class name
+#         # # Get the class details based on the class name
+#         # token = request.args.get("token")  # Get the token from the query parameters
+#         # user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
 #         data = request.json
 #         class_name = data.get('class_name')
 #         print(class_name)
@@ -688,20 +592,24 @@ def create_class(current_user):
 #         print(class_details)
 #         if class_details:
 #             # Extract the user's email from the device (replace with your method)
-#             # user_email = User().get_user_email_from_device(request)
-#             user_email = "ch.sarun0904@gmail.com"  # Replace with the student's email
-
+#             token = None
+#             if "Authorization" in request.headers:
+#                 token = request.headers["Authorization"].split(" ")[1]
 #             # Check if the user's email exists in the user collection
 #             user = User().find_user_by_email(user_email)
-#             print(user,"ejhrgbkrjgnerwkgnk")
+#             decoded_token = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+#             print(decoded_token)
+#             user_email = decoded_token["email"]  # Replace with the student's email
 
+#             # print(user, "ejhrgbkrjgnerwkgnk")
 #             if user:
 #                 # Implement logic to mark the user as present in a new collection
 #                 print("panduuuuuuuuuuu")
-#                 class_id=class_details["_id"]
-#                 user_id=user["_id"]
-#                 print(class_id,user_id ," fjhsbgvjhb")
-#                 Classes().mark_user_as_present(class_details["_id"], user["_id"])
+#                 # Assuming that class_details and user objects have different structures
+#                 class_id = class_details.get("_id")  # Access class_id based on its actual structure
+#                 user_id = user.get("_id")  # Access user_id based on its actual structure
+#                 print(class_id, user_id, " fjhsbgvjhb")
+#                 Classes().mark_user_as_present(class_id, user_id)
 
 #                 # Fetch the QR code image for display
 #                 qr_code_image_path = fetch_qr_code_image(class_details['qr_code_path'])
@@ -710,7 +618,7 @@ def create_class(current_user):
 #                 return jsonify({
 #                     "message": "Student joined the class",
 #                     "class_details": class_details,
-#                     "user_email": user_email,  # Include the user's email
+#                     "user_email": user_email,
 #                     "qr_code_image_path": qr_code_image_path
 #                 }), 200
 #             else:
@@ -733,65 +641,42 @@ def create_class(current_user):
 #         }), 500
 @app.route("/join_class", methods=["POST"])
 @jwttoken_required
-@role_required(allowed_roles=["admin","student","teacher"])
-def join_class():
+@role_required(allowed_roles=["student"])
+def join_class(current_user):
     try:
-        # # Get the class details based on the class name
-        # token = request.args.get("token")  # Get the token from the query parameters
-        # user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
         data = request.json
+        token = token = request.headers["Authorization"].split(" ")[1]
         class_name = data.get('class_name')
-        print(class_name)
+        user_email = extract_email_from_token(token, app.config["JWT_SECRET_KEY"])
+        # app.logger.info(f"Class Name: {class_name}")
+
         class_details = Classes().get_class_by_name(class_name)
-        print(class_details)
+        user = User().find_user_by_email(user_email)
         if class_details:
-            # Extract the user's email from the device (replace with your method)
-            token = None
-            if "Authorization" in request.headers:
-                token = request.headers["Authorization"].split(" ")[1]
-            # Check if the user's email exists in the user collection
-            user = User().find_user_by_email(user_email)
-            decoded_token = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
-            print(decoded_token)
-            user_email = decoded_token["email"]  # Replace with the student's email
-
-            # print(user, "ejhrgbkrjgnerwkgnk")
-            if user:
-                # Implement logic to mark the user as present in a new collection
-                print("panduuuuuuuuuuu")
-                # Assuming that class_details and user objects have different structures
-                class_id = class_details.get("_id")  # Access class_id based on its actual structure
-                user_id = user.get("_id")  # Access user_id based on its actual structure
-                print(class_id, user_id, " fjhsbgvjhb")
-                Classes().mark_user_as_present(class_id, user_id)
-
-                # Fetch the QR code image for display
-                qr_code_image_path = fetch_qr_code_image(class_details['qr_code_path'])
-                print(qr_code_image_path)
-
+            meet_link = class_details.get('meet_link')
+            user_id = user.get("_id")  # Access user_id based on its actual structure
+            class_id = class_details.get("_id")  # Access class_id based on its actual structure
+            user_id = user.get("_id")
+            # print(class_id, user_id, " fjhsbgvjhb")
+            Classes().mark_user_as_present(class_id, user_id)
+            if meet_link:
                 return jsonify({
-                    "message": "Student joined the class",
-                    "class_details": class_details,
-                    "user_email": user_email,
-                    "qr_code_image_path": qr_code_image_path
+                    "message": "User marked as present in the class",
+                    "meeting_link": meet_link
                 }), 200
-            else:
-                return jsonify({
-                    "message": "User with email not found",
-                    "data": None,
-                    "error": "Unauthorized"
-                }), 401
+            return jsonify({
+                "message": "Meeting link not found in class details",
+                "error": "Not Found"
+            }), 404
         else:
             return jsonify({
                 "message": "Class with the specified name not found",
-                "data": None,
                 "error": "Not Found"
             }), 404
     except Exception as e:
         return jsonify({
             "message": "Failed to join class",
-            "error": str(e),
-            "data": None
+            "error": str(e)
         }), 500
 
 def extract_email_from_token(token, secret_key):
