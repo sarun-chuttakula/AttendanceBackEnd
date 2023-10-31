@@ -10,7 +10,12 @@
     body {
       background-color: #f4f4f4;
     }
-
+    #maindiv{
+      width: 50%;
+    }
+    /* .form-group{
+      width: 75%;
+    } */
     .container {
       background-color: #ffffff;
       padding: 20px;
@@ -21,7 +26,7 @@
 </head>
 
 <body>
-  <div class="container mt-5">
+  <div class="container mt-5" id="maindiv">
     <h1 class="text-center">User Registration</h1>
     <form id="registration-form">
       <div class="form-group">
@@ -59,7 +64,7 @@
       </button>
     </form>
 
-    <div id="response-message" class="mt-3"></div>
+    <div id="response-message" class="mt-3" style="border: 20%;"></div>
   </div>
 
   <script>
@@ -80,7 +85,7 @@
         branch: branch,
       };
 
-      fetch("http://127.0.0.1:4004/users", {
+      fetch("http://127.0.0.1:4068/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 <?php
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Define the Flask server URL
-    $flaskServerUrl = "http://localhost:4004";
+    $flaskServerUrl = "http://localhost:4068";
 
     // Prepare the login data
     $loginData = array(

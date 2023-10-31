@@ -26,8 +26,8 @@
     }
 
     #error {
-      margin-top: 10px;
       color: red;
+      margin: 10px 0px 10px 42%;
     }
 
     h1 {
@@ -87,7 +87,7 @@
           .then((result) => {
             if (result.error) {
               // Handle login error
-              document.getElementById("error").innerText = result.error;
+              document.getElementById("error").innerText = result.message;
             } else if (result.access_token) {
               // Redirect to the dashboard URL with the token as a query parameter
               window.location.href = `/dashboard?token=${result.access_token}`;

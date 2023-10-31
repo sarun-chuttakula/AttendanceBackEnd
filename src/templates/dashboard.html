@@ -33,10 +33,16 @@
 
     .logout-button {
       position: absolute;
-      top: 15px;
-      right: 20px;
+      top: 30px;
+      right: 50px;
     }
-
+    #create-class-form{
+      margin-top: 20px;
+    }
+    input[type="text"],
+    input[type="datetime-local"] {
+      width: 50%; /* You can adjust the width as needed */
+    }
     /* You can add more custom styles as needed */
   </style>
 </head>
@@ -76,7 +82,7 @@
     <p>No classes found.</p>
     {% endif %} {% if current_user and (current_user.role == "teacher" or
     current_user.role == "admin") %}
-    <h2>Create a Class</h2>
+    <h2 style="margin-top: 50px;">Create a Class</h2>
     <form id="create-class-form" method="POST">
       <div class="form-group">
         <label for="class_name">Class Name:</label>
@@ -116,9 +122,6 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-  <!-- ... (your HTML code) ... -->
-
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       // Function to extract the token from the query parameters
@@ -126,20 +129,21 @@
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get("token");
       }
-
       const joinButtons = document.querySelectorAll(".join-class-button");
+      const createClassForm = document.getElementById("create-class-form");
 
       joinButtons.forEach(function (button) {
         button.addEventListener("click", function () {
-          const className = button.getAttribute("data-class-name").trim();
+          const className = button.getAttribute("data-class-name");
           const token = getTokenFromParams();
           fetch("/join_class", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`,
+
             },
-            body: JSON.stringify({ class_name: className }),
+            body: JSON.stringify({ class_name: className, jwt: token }),
           })
             .then((response) => response.json())
             .then((result) => {
@@ -147,14 +151,46 @@
                 window.location.href = result.meeting_link;
               } else if (result.error) {
                 alert(result.error);
-              } else if (result.message) {
-                alert(result.message);
               }
             })
             .catch((error) => {
               console.error(error);
             });
         });
+      });
+      createClassForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        const formData = new FormData(createClassForm);
+        const classData = {};
+        formData.forEach((value, key) => {
+          classData[key] = value;
+        });
+
+        const token = getTokenFromParams(); // Get the token from the URL
+
+        if (token) {
+          fetch("/create_class", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // Include the token as a Bearer token
+            },
+            body: JSON.stringify(classData),
+          })
+            .then((response) => response.json())
+            .then((result) => {
+              if (result.message) {
+                alert(result.message);
+              } else if (result.error) {
+                alert(result.error);
+              }
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        } else {
+          alert("Token is missing in the URL.");
+        }
       });
     });
   </script>
