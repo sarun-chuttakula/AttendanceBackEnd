@@ -50,8 +50,47 @@ def dashboard():
 
         user = User().get_user_by_id(decoded_token["id"])
         if user:
-            classes = list(db.classes.find({}))
-            return render_template("dashboard.html", classes=classes, current_user=user)
+           
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    try:
+        token = request.args.get('token')
+        try:
+            decoded_token = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            return jsonify({
+                "message": "Token has expired",
+                "error": "Unauthorized"
+            }), 401
+        except jwt.InvalidTokenError:
+            return jsonify({
+                "message": "Invalid token",
+                "error": "Unauthorized"
+            }), 401
+
+        user = User().get_user_by_id(decoded_token["id"])
+        if user:
+            if user["role"] == "student":
+                classes = list(db.classes.find({"branch":user["branch"]}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
+            elif user["role"] =="teacher":
+                classes = list(db.classes.find({"created_by":user["name"]}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
+            else:
+                classes = list(db.classes.find({}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
+
+        return jsonify({
+            "message": "User not found",
+            "error": "Unauthorized"
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            "message": "Something went wrong",
+            "error": str(e),
+            "data": None
+        }), 500
 
         return jsonify({
             "message": "User not found",
