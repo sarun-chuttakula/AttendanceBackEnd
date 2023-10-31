@@ -30,7 +30,7 @@ def hello():
 @app.route("/signup", methods=["GET"])
 def signup_form():
     return render_template("signup.html")
-
+       
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     try:
@@ -50,8 +50,15 @@ def dashboard():
 
         user = User().get_user_by_id(decoded_token["id"])
         if user:
-            classes = list(db.classes.find({}))
-            return render_template("dashboard.html", classes=classes, current_user=user)
+            if user["role"] == "student":
+                classes = list(db.classes.find({"branch":user["branch"]}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
+            elif user["role"] =="teacher":
+                classes = list(db.classes.find({"created_by":user["name"]}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
+            else:
+                classes = list(db.classes.find({}))
+                return render_template("dashboard.html", classes=classes, current_user=user)
 
         return jsonify({
             "message": "User not found",
