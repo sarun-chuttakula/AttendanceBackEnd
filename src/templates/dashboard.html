@@ -1,35 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      /* Add your custom CSS styles here */
+      .container {
+        margin-top: 20px;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-  <style>
-    /* Add your custom CSS styles here */
-    .container {
-      margin-top: 20px;
-    }
+      h1 {
+        color: #333;
+      }
 
-    h1 {
-      color: #333;
-    }
+      .list-group {
+        margin-top: 20px;
+      }
 
-    .list-group {
-      margin-top: 20px;
-    }
+      .list-group-item {
+        margin-top: 20px;
+        padding: 15px;
+        border: 2px solid #706e71;
+        border-radius: 5px;
+      }
 
-    .list-group-item {
-      margin-top: 20px;
-      padding: 15px;
-      border: 2px solid #706e71;
-      border-radius: 5px;
-    }
-
-    .join-class-button {
-      margin-top: 10px;
-    }
+      .join-class-button {
+        margin-top: 10px;
+      }
 
     .logout-button {
       position: absolute;
@@ -47,28 +49,32 @@
   </style>
 </head>
 
-<body>
-  <div class="container">
-    <h1>Welcome to the Dashboard</h1>
-    {% if current_user %}
-    <a href="/" class="btn btn-danger logout-button">Logout</a>
-    {% endif %}
-    {% if classes %}
-    <h2>Your Classes</h2>
-    <ul class="list-group">
-      {% for class in classes %}
-      <li class="list-group-item">
-        <strong>Class Name:</strong> {{ class.class_name }}<br />
-        <strong>Created Date:</strong> {{ class.created_date }}<br />
-        <strong>Start Time:</strong> {{ class.start_time }}<br />
-        <strong>End Time:</strong> {{ class.end_time }}<br />
-        <strong>Meeting Link:</strong>
-        <a href="{{ class.meet_link }}" target="_blank">{{ class.meet_link }}</a><br />
-        <strong>QR Code:</strong>
-        <img src="{{ url_for('serve_qr_code_image', image_name=class.qr_code_path.split('/')[-1]) }}" alt="QR Code"
-          class="img-fluid" /><br />
-        <strong>Section:</strong> {{ class.section }}<br />
-        <strong>Branch:</strong> {{ class.branch }}<br />
+  <body>
+    <div class="container">
+      <h1>Welcome to the Dashboard</h1>
+      {% if current_user %}
+      <a href="/" class="btn btn-danger logout-button">Logout</a>
+      {% endif %} {% if classes %}
+      <h2>Your Classes</h2>
+      <ul class="list-group">
+        {% for class in classes %}
+        <li class="list-group-item">
+          <strong>Class Name:</strong> {{ class.class_name }}<br />
+          <strong>Created Date:</strong> {{ class.created_date }}<br />
+          <strong>Start Time:</strong> {{ class.start_time }}<br />
+          <strong>End Time:</strong> {{ class.end_time }}<br />
+          <strong>Meeting Link:</strong>
+          <a href="{{ class.meet_link }}" target="_blank"
+            >{{ class.meet_link }}</a
+          ><br />
+          <strong>QR Code:</strong>
+          <img
+            src="{{ url_for('serve_qr_code_image', image_name=class.qr_code_path.split('/')[-1]) }}"
+            alt="QR Code"
+            class="img-fluid"
+          /><br />
+          <strong>Section:</strong> {{ class.section }}<br />
+          <strong>Branch:</strong> {{ class.branch }}<br />
 
         {% if current_user and current_user.role == "student" %}
         <button type="button" class="btn btn-primary join-class-button" data-class-name="{{ class.class_name  }}">
@@ -89,35 +95,65 @@
         <input type="text" id="class_name" name="class_name" class="form-control" required />
       </div>
 
-      <div class="form-group">
-        <label for="start_time">Start Time:</label>
-        <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="start_time">Start Time:</label>
+          <input
+            type="datetime-local"
+            id="start_time"
+            name="start_time"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="end_time">End Time:</label>
-        <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="end_time">End Time:</label>
+          <input
+            type="datetime-local"
+            id="end_time"
+            name="end_time"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="meet_link">Meeting Link:</label>
-        <input type="text" id="meet_link" name="meet_link" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="meet_link">Meeting Link:</label>
+          <input
+            type="text"
+            id="meet_link"
+            name="meet_link"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="section">Section:</label>
-        <input type="text" id="section" name="section" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="section">Section:</label>
+          <input
+            type="text"
+            id="section"
+            name="section"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="branch">Branch:</label>
-        <input type="text" id="branch" name="branch" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="branch">Branch:</label>
+          <input
+            type="text"
+            id="branch"
+            name="branch"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <button type="submit" class="btn btn-primary">Create Class</button>
-    </form>
-    {% endif %}
-  </div>
+        <button type="submit" class="btn btn-primary">Create Class</button>
+      </form>
+      {% endif %}
+    </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
