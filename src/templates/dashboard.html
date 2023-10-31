@@ -41,6 +41,9 @@
     #create-class-form{
       margin-top: 20px;
     }
+    #createuser{
+      margin-top: 20px;
+    }
     input[type="text"],
     input[type="datetime-local"] {
       width: 50%; /* You can adjust the width as needed */
@@ -97,61 +100,33 @@
 
         <div class="form-group">
           <label for="start_time">Start Time:</label>
-          <input
-            type="datetime-local"
-            id="start_time"
-            name="start_time"
-            class="form-control"
-            required
-          />
+          <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
         </div>
 
         <div class="form-group">
           <label for="end_time">End Time:</label>
-          <input
-            type="datetime-local"
-            id="end_time"
-            name="end_time"
-            class="form-control"
-            required
-          />
+          <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
         </div>
 
         <div class="form-group">
           <label for="meet_link">Meeting Link:</label>
-          <input
-            type="text"
-            id="meet_link"
-            name="meet_link"
-            class="form-control"
-            required
-          />
+          <input type="text" id="meet_link" name="meet_link" class="form-control" required />
         </div>
 
         <div class="form-group">
           <label for="section">Section:</label>
-          <input
-            type="text"
-            id="section"
-            name="section"
-            class="form-control"
-            required
-          />
+          <input type="text" id="section" name="section" class="form-control" required />
         </div>
 
         <div class="form-group">
           <label for="branch">Branch:</label>
-          <input
-            type="text"
-            id="branch"
-            name="branch"
-            class="form-control"
-            required
-          />
+          <input type="text" id="branch" name="branch" class="form-control" required />
         </div>
 
         <button type="submit" class="btn btn-primary">Create Class</button>
       </form>
+      {% endif %} {% if current_user and current_user.role == "admin" %}
+      <button type="submit" id="createuser" class="btn btn-primary">add Student or Teacher</button>
       {% endif %}
     </div>
 
@@ -193,6 +168,9 @@
               console.error(error);
             });
         });
+      });
+      document.getElementById("createuser").addEventListener("click", function () {
+        window.location.href ="/adduser";
       });
       createClassForm.addEventListener("submit", function (event) {
         event.preventDefault();

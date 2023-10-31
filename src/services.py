@@ -26,7 +26,7 @@ class User:
     def __init__(self):
         return
 
-    def create_user(self, name="", email="", password="", section="", role="", branch=""):
+    def create_user(self, rollno="",name="", email="", password="", section="", role="", branch=""):
         # Create a new user
         print("createuserfn")
         user = self.get_user_by_email(email)
@@ -43,6 +43,7 @@ class User:
             new_user = db.users.insert_one({
                 "name": name,
                 "email": email,
+                "rollno": rollno,
                 "branch": branch,
                 "section": section,
                 "refresh_token": refresh_token,
@@ -56,7 +57,6 @@ class User:
                 "name": name,
                 "email": email,
                 "branch": branch,
-                "section": "",
                 "refresh_token": refresh_token,
                 "password": self.encrypt_password(password),
                 "not_password": password,
@@ -67,8 +67,6 @@ class User:
             new_user = db.users.insert_one({
                 "name": name,
                 "email": email,
-                "section": "",
-                "branch": "",
                 "refresh_token": refresh_token,
                 "password": self.encrypt_password(password),
                 "not_password": password,
@@ -167,12 +165,11 @@ class User:
         user = self.get_user_by_id(user_id)
         return user
 
-    def login(self, email, password):
+    def login(self, email):
         # Login a user
         user = self.get_user_by_email(email)
-        if not user or not check_password_hash(user["password"], password):
-            return
         user.pop("password")
+        user.pop("not_password")
         return user
 
     def generate_qrcode(self, current_user="", token="", req=""):

@@ -76,6 +76,9 @@ def dashboard():
 def logout():
     return redirect("/")
 
+@app.route("/adduser", methods=["GET"])
+def adduser_form():
+    return render_template("create_user.html")
 
 @app.route("/users", methods=["POST"])
 # @jwttoken_required
@@ -136,7 +139,7 @@ def login():
                 "data": None,
                 "error": "Unauthorized"
             }), 401
-        user = User().login(data["email"], data["password"])
+        user = User().login(data["email"])
         if user:
             try:
                 payload = {
@@ -159,8 +162,8 @@ def login():
                     'id': user["_id"],
                     'name': user["name"],
                     'role': user["role"],
-                    'section': user["section"],
-                    'branch': user["branch"]
+                    'section': user.get("section", ""),
+                    'branch': user.get("branch", "")
                 }), 200
 
             except Exception as e:
