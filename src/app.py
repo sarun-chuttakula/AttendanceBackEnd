@@ -72,6 +72,18 @@ def dashboard():
             "data": None
         }), 500
 
+        return jsonify({
+            "message": "User not found",
+            "error": "Unauthorized"
+        }), 401
+
+    except Exception as e:
+        return jsonify({
+            "message": "Something went wrong",
+            "error": str(e),
+            "data": None
+        }), 500
+
 @app.route("/logout", methods=["GET"])
 def logout():
     return redirect("/")
