@@ -275,7 +275,7 @@ class Classes:
             print(f"Failed to generate QR code: {str(e)}")
             return None
 
-    def store_class_in_database(self, class_details, qr_code_path):
+    def store_class_in_database(self,user, class_details, qr_code_path):
         try:
             class_id = str(uuid.uuid4())
             start_time = datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
@@ -289,7 +289,8 @@ class Classes:
                 "meet_link": class_details["meet_link"],
                 "qr_code_path": qr_code_path,
                 "section": class_details["section"],
-                "branch": class_details["branch"]
+                "branch": class_details["branch"],
+                "created_by": user["name"]
             }
             classes = db.classes.insert_one(class_data)
             return classes

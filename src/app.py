@@ -13,7 +13,10 @@ from flask import redirect
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.77.62:4068"]}}) # add the addresses to allow cors permission
+# CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app, supports_credentials=True)
+
+# CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.77.62:4068","http://172.20.36.222:4068"]}}) # add the addresses to allow cors permission
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # print(SECRET_KEY)
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
@@ -291,10 +294,12 @@ def changepassword(current_user):
 def create_class(current_user):
     try:
         class_details = request.json
+        branch = class_details["branch"]
         start_time = datetime.datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
         end_time = datetime.datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
 
         conflicts = db.classes.count_documents({
+            "branch": branch,
             "$or": [
                 {"start_time": {"$lte": start_time}, "end_time": {"$gte": start_time}},
                 {"start_time": {"$lte": end_time}, "end_time": {"$gte": end_time}},
@@ -305,7 +310,7 @@ def create_class(current_user):
         if conflicts > 0:
             return jsonify({"error": "A class with conflicting timings already exists."})
         qr_code_path = Classes().generate_unique_qr_code(class_details)
-        Classes().store_class_in_database(class_details, qr_code_path)
+        Classes().store_class_in_database(current_user,class_details, qr_code_path)
 
         return jsonify({
             "message": "Class created successfully",
