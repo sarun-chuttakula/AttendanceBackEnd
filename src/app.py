@@ -25,7 +25,7 @@ app.config['SECRET_KEY'] = SECRET_KEY
 
 @app.route("/")
 def hello():
-    return render_template("home.html")
+    return render_template("login.html")
 
 @app.route("/signup", methods=["GET"])
 def signup_form():
@@ -59,18 +59,6 @@ def dashboard():
             else:
                 classes = list(db.classes.find({}))
                 return render_template("dashboard.html", classes=classes, current_user=user)
-
-        return jsonify({
-            "message": "User not found",
-            "error": "Unauthorized"
-        }), 401
-
-    except Exception as e:
-        return jsonify({
-            "message": "Something went wrong",
-            "error": str(e),
-            "data": None
-        }), 500
 
         return jsonify({
             "message": "User not found",
