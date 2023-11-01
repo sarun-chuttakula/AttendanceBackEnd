@@ -67,7 +67,7 @@
       </div>
 
       <button type="button" onclick="registerUser()" class="btn btn-primary">
-        Register
+        Create
       </button>
     </form>
 
@@ -75,6 +75,11 @@
   </div>
 
   <script>
+    function getTokenFromParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      console.log("token", urlParams.get("token"));
+      return urlParams.get("token");
+    }
     function registerUser() {
       const name = document.getElementById("name").value;
       const rollno = document.getElementById("rollno").value;
@@ -93,11 +98,13 @@
         section: section,
         branch: branch,
       };
+      const token = getTokenFromParams();
 
       fetch("http://127.0.0.1:4068/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(userData),
       })

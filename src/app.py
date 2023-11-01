@@ -81,9 +81,9 @@ def adduser_form():
     return render_template("create_user.html")
 
 @app.route("/users", methods=["POST"])
-# @jwttoken_required
-# @role_required(allowed_roles=["admin"])
-def add_user():
+@jwttoken_required
+@role_required(allowed_roles=["admin"])
+def add_user(current_user):
     try:
         user = request.json
         if not user:
@@ -140,7 +140,7 @@ def login():
                 "error": "Unauthorized"
             }), 401
         user = User().login(data["email"])
-        if user:
+        if user and user["active"]:
             try:
                 payload = {
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=6),
@@ -174,7 +174,7 @@ def login():
                 }), 500
         else:
             return jsonify({
-                "message": "Invalid email or password",
+                "message": "User has been blocked",
                 "data": None,
                 "error": "Unauthorized"
             }), 401
@@ -349,7 +349,8 @@ def join_class(current_user):
             user_id = user.get("_id") 
             class_id = class_details.get("_id") 
             user_id = user.get("_id")
-            Classes().mark_user_as_present(class_id, user_id)
+            if current_user["role"] == "student" :
+                Classes().mark_user_as_present(class_id, user_id)
             if meet_link:
                 return jsonify({
                     "message": "User marked as present in the class",
