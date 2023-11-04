@@ -4,6 +4,8 @@ import jwt
 from datetime import datetime, timedelta
 import socket
 import uuid
+# import base64
+# from io import BytesIO
 import qrcode
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -24,14 +26,14 @@ class User:
     def __init__(self):
         return
 
-    def create_user(self, rollno="",name="", email="", password="", section="", role="", branch=""):
+    def create_user(self, name="", email="", password="", section="", role="", branch="",rollno=""):
         # Create a new user
         print("createuserfn")
         user = self.get_user_by_email(email)
         if user:
             return
         refresh_token = jwt.encode({
-            'exp': datetime.utcnow() + timedelta(hours=6),
+            'exp': datetime.utcnow() + timedelta(hours=int(os.environ.get('JWT_EXPIRE_TIME'))),
         },
             current_app.config["JWT_SECRET_KEY"],
             algorithm="HS256"
@@ -41,7 +43,6 @@ class User:
             new_user = db.users.insert_one({
                 "name": name,
                 "email": email,
-                "rollno": rollno,
                 "branch": branch,
                 "section": section,
                 "refresh_token": refresh_token,
@@ -55,6 +56,7 @@ class User:
                 "name": name,
                 "email": email,
                 "branch": branch,
+                "section": "",
                 "refresh_token": refresh_token,
                 "password": self.encrypt_password(password),
                 "not_password": password,
@@ -71,6 +73,7 @@ class User:
                 "role": role,
                 "active": True
             })
+        # print(new_user)
         return self.get_user_by_id(new_user.inserted_id)
 
     def get_all_users(self):
@@ -79,7 +82,7 @@ class User:
         return [{**user, "_id": str(user["_id"])} for user in users]
 
     def get_all_users_by_section(self, section=""):
-        # get all user by section
+        # get all user
         users = db.users.find({"section": section, "active": True})
         return [{**user, "_id": str(user["_id"])} for user in users]
 
@@ -134,7 +137,7 @@ class User:
         return user
 
     def disable_account(self, user_id):
-        # use this funtion to use block user from use account
+        # use this funtion to use block user to use account
         user = db.users.update_one(
             {"_id": bson.ObjectId(user_id)},
             {"$set": {"active": False}}
@@ -162,11 +165,12 @@ class User:
         user = self.get_user_by_id(user_id)
         return user
 
-    def login(self, email):
+    def login(self, email, password):
         # Login a user
         user = self.get_user_by_email(email)
+        if not user or not check_password_hash(user["password"], password):
+            return
         user.pop("password")
-        user.pop("not_password")
         return user
 
     def generate_qrcode(self, current_user="", token="", req=""):
@@ -183,6 +187,13 @@ class User:
         return img_name
     
     def get_user_email_from_device(self,request):
+    # You may implement logic here to obtain the user's email from the device.
+    # For example, if the email is stored in a cookie:
+    # user_email = request.cookies.get('user_email')
+    # Or if it's stored in a session:
+    # user_email = request.session.get('user_email')
+
+    # For this example, let's assume you retrieve the email from a request header
         user_email = request.headers.get('X-User-Email')
 
         return user_email
@@ -193,6 +204,7 @@ class User:
         user = db.users.find_one({"email": email, "active": True})
         if user:
             user["_id"] = str(user["_id"])
+            # print(user,"user")
             return user
         else:
             return None
@@ -218,18 +230,29 @@ class Classes:
     
     def get_all_classes_sorted_by_date(self):
         try:
+            # Assuming you have a MongoDB collection called 'classes'
+            # Replace 'your_database_name' and 'your_collection_name' with actual values
             db = self.client["myDatabase"]
             collection = db["classes"]
+
+            # Fetch all classes sorted by 'created_date' in descending order (latest first)
             classes = collection.find().sort("created_date", DESCENDING)
+
+            # Convert the cursor to a list of classes
             class_list = list(classes)
+
             return class_list
         except Exception as e:
+            # Handle any exceptions or errors here
             print(f"Error in get_all_classes_sorted_by_date: {str(e)}")
             return []
 
     def generate_unique_qr_code(self, class_details):
         try:
+            # Create a unique random name for the QR code image
             qr_code_name = str(uuid.uuid4()) + ".png"
+
+            # Create a string that represents the class details
             class_info = f"Class: {class_details['class_name']}, Timings: {class_details['start_time']}-{class_details['end_time']}, Meet Link: {class_details['meet_link']},section: {class_details['section']},branch: {class_details['branch']}"
             qr = qrcode.QRCode(
                 version=1,
@@ -250,24 +273,22 @@ class Classes:
             print(f"Failed to generate QR code: {str(e)}")
             return None
 
-    def store_class_in_database(self,user, class_details, qr_code_path):
+    def store_class_in_database(self, user,class_details, qr_code_path):
         try:
             class_id = str(uuid.uuid4())
             start_time = datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
             end_time = datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
-            created_date = datetime.strptime(class_details["created_date"], '%Y-%m-%d')
             class_data = {
                 "_id": class_id,
                 "class_name": class_details["class_name"],
                 # "timings": class_details["start_time"]-class_details["end_time"],
-                "created_date": created_date,
                 "start_time": start_time,
                 "end_time": end_time,
                 "meet_link": class_details["meet_link"],
                 "qr_code_path": qr_code_path,
                 "section": class_details["section"],
                 "branch": class_details["branch"],
-                "created_by": user["name"]
+                'created_by':user["name"]
             }
             classes = db.classes.insert_one(class_data)
             return classes
@@ -282,6 +303,7 @@ class Classes:
                 return {
                     "class_id": str(class_data["_id"]),
                     "qr_code_path": class_data["qr_code_path"],
+                    # Include other class details as needed
                 }
             else:
                 return None
@@ -304,9 +326,13 @@ class Classes:
         
     def get_class_by_name(self, class_name):
         try:
-            classes = db.classes.find()
+            current_app.logger.info(class_name)
+            # current_app.logger.info(f"Searching for class with name: {class_name}")
+            # classes = db.classes.find()
+            # current_app.logger.info(classes)
             class_data = db.classes.find_one({"class_name": class_name})
             # current_app.logger.info(class_data)
+            current_app.logger.info(class_data)
 
             if class_data:
                 return {

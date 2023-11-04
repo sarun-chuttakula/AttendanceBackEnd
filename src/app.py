@@ -13,10 +13,7 @@ from flask import redirect
 load_dotenv()
 
 app = Flask(__name__)
-# CORS(app, resources={r"/api/*": {"origins": "*"}})
-CORS(app, supports_credentials=True)
-
-# CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.77.62:4068","http://172.20.36.222:4068"]}}) # add the addresses to allow cors permission
+CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.77.62:4068"]}}) # add the addresses to allow cors permission
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # print(SECRET_KEY)
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
@@ -27,10 +24,14 @@ app.config['SECRET_KEY'] = SECRET_KEY
 def hello():
     return render_template("login.html")
 
+@app.route("/adduser", methods=["GET"])
+def adduser_form():
+    return render_template("create_user.html")
+
 @app.route("/signup", methods=["GET"])
 def signup_form():
     return render_template("signup.html")
-       
+
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
     try:
@@ -57,7 +58,7 @@ def dashboard():
                 classes = list(db.classes.find({"created_by":user["name"]}))
                 return render_template("dashboard.html", classes=classes, current_user=user)
             else:
-                classes = list(db.classes.find({}))
+                classes = list(db.classes.find())
                 return render_template("dashboard.html", classes=classes, current_user=user)
 
         return jsonify({
@@ -76,14 +77,11 @@ def dashboard():
 def logout():
     return redirect("/")
 
-@app.route("/adduser", methods=["GET"])
-def adduser_form():
-    return render_template("create_user.html")
 
 @app.route("/users", methods=["POST"])
-@jwttoken_required
-@role_required(allowed_roles=["admin"])
-def add_user(current_user):
+# @jwttoken_required
+# @role_required(allowed_roles=["admin"])
+def add_user():
     try:
         user = request.json
         if not user:
@@ -139,16 +137,15 @@ def login():
                 "data": None,
                 "error": "Unauthorized"
             }), 401
-        user = User().login(data["email"])
-        if user and user["active"]:
+        user = User().login(data["email"], data["password"])
+        if user:
             try:
                 payload = {
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=6),
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.environ.get('JWT_EXPIRE_TIME'))),
                     'id': user["_id"],
                     'name': user["name"],
                     'role': user["role"],
                     'email': user["email"],
-                    'section': user.get("section", ""),
                     'branch': user.get("branch", ""),
                 }
                 access_token = jwt.encode(
@@ -162,8 +159,6 @@ def login():
                     'id': user["_id"],
                     'name': user["name"],
                     'role': user["role"],
-                    'section': user.get("section", ""),
-                    'branch': user.get("branch", "")
                 }), 200
 
             except Exception as e:
@@ -174,7 +169,7 @@ def login():
                 }), 500
         else:
             return jsonify({
-                "message": "User has been blocked",
+                "message": "Invalid email or password",
                 "data": None,
                 "error": "Unauthorized"
             }), 401
@@ -300,16 +295,14 @@ def changepassword(current_user):
 
 @app.route("/create_class", methods=["POST"])
 @jwttoken_required
-@role_required(allowed_roles=["teacher"])
+@role_required(allowed_roles=["admin","teacher"])
 def create_class(current_user):
     try:
         class_details = request.json
-        branch = class_details["branch"]
         start_time = datetime.datetime.strptime(class_details["start_time"], '%Y-%m-%dT%H:%M')
         end_time = datetime.datetime.strptime(class_details["end_time"], '%Y-%m-%dT%H:%M')
 
         conflicts = db.classes.count_documents({
-            "branch": branch,
             "$or": [
                 {"start_time": {"$lte": start_time}, "end_time": {"$gte": start_time}},
                 {"start_time": {"$lte": end_time}, "end_time": {"$gte": end_time}},
@@ -338,6 +331,7 @@ def create_class(current_user):
 @role_required(allowed_roles=["student"])
 def join_class(current_user):
     try:
+        app.logger.info(request.json)
         data = request.json
         token = token = request.headers["Authorization"].split(" ")[1]
         class_name = data.get('class_name')
@@ -347,10 +341,9 @@ def join_class(current_user):
         if class_details:
             meet_link = class_details.get('meet_link')
             user_id = user.get("_id") 
-            class_id = class_details.get("_id") 
+            class_id = class_details.get("class_id") 
             user_id = user.get("_id")
-            if current_user["role"] == "student" :
-                Classes().mark_user_as_present(class_id, user_id)
+            Classes().mark_user_as_present(class_id, user_id)
             if meet_link:
                 return jsonify({
                     "message": "User marked as present in the class",

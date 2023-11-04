@@ -18,13 +18,13 @@ dictConfig({
             'formatter': 'default',
         },
         'console': {
-            'class': 'logging.StreamHandler',  # Added a StreamHandler for console logging
+            'class': 'logging.StreamHandler',  # Add a StreamHandler for console logging
             'formatter': 'default',
         },
     },
     'root': {
         'level': 'INFO',
-        'handlers': ['file', 'console'],  # Included the 'console' handler for console logging
+        'handlers': ['file', 'console'],  # Include the 'console' handler for console logging
     },
 })
 

@@ -18,6 +18,7 @@
     /* .form-group{
       width: 75%;
     } */
+
     .container {
       background-color: #ffffff;
       padding: 20px;
@@ -73,7 +74,9 @@
 
     <div id="response-message" class="mt-3" style="border: 20%;"></div>
   </div>
-
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script>
     function getTokenFromParams() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -99,12 +102,12 @@
         branch: branch,
       };
       const token = getTokenFromParams();
-
+console.log(token)
       fetch("http://127.0.0.1:4068/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(userData),
       })

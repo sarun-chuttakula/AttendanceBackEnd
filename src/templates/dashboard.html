@@ -1,88 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <style>
+      /* Add your custom CSS styles here */
+      .container {
+        margin-top: 20px;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-  <style>
-    /* Add your custom CSS styles here */
-    .container {
-      margin-top: 20px;
-    }
+      h1 {
+        color: #333;
+      }
 
-    h1 {
-      color: #333;
-    }
+      .list-group {
+        margin-top: 20px;
+      }
 
-    .list-group {
-      margin-top: 20px;
-    }
+      .list-group-item {
+        margin-top: 20px;
+        padding: 15px;
+        border: 2px solid #706e71;
+        border-radius: 5px;
+      }
 
-    .list-group-item {
-      margin-top: 20px;
-      padding: 15px;
-      border: 2px solid #706e71;
-      border-radius: 5px;
-    }
-
-    .join-class-button {
-      margin-top: 10px;
-    }
+      .join-class-button {
+        margin-top: 10px;
+      }
 
     .logout-button {
       position: absolute;
       top: 30px;
       right: 50px;
     }
-
-    #create-class-form {
+    #create-class-form{
       margin-top: 20px;
     }
-
-    #createuser {
-      margin-top: 20px;
-    }
-
     input[type="text"],
     input[type="datetime-local"] {
-      width: 50%;
-      /* You can adjust the width as needed */
+      width: 50%; /* You can adjust the width as needed */
     }
-
     /* You can add more custom styles as needed */
   </style>
 </head>
 
-<body>
-  <div class="container">
-    <h1>Welcome to the Dashboard</h1>
-    {% if current_user %}
-    <a href="/" class="btn btn-danger logout-button">Logout</a>
-    {% endif %} {% if classes %}
-    <h2>Your Classes</h2>
-    <ul class="list-group">
-      {% for class in classes %}
-      <li class="list-group-item">
-        <strong>Class Name:</strong> {{ class.class_name }}<br />
-        <strong>Created_by:</strong> {{ class.created_by }}<br />
-        <strong>Created Date:</strong> {{ class.created_date }}<br />
-        <strong>Start Time:</strong> {{ class.start_time }}<br />
-        <strong>End Time:</strong> {{ class.end_time }}<br />
-        <strong>Meeting Link:</strong>
-        <a href="{{ class.meet_link }}" target="_blank">{{ class.meet_link }}</a><br />
-        {% if current_user and current_user.role == "student" %}
-        <strong>QR Code:</strong>
-        <img src="{{ url_for('serve_qr_code_image', image_name=class.qr_code_path.split('/')[-1]) }}" alt="QR Code"
-          class="img-fluid" /><br />
-        {% endif %}
-
-        <strong>Section:</strong> {{ class.section }}<br />
-        <strong>Branch:</strong> {{ class.branch }}<br />
-
-        {% if current_user and current_user.role == "student" %}
-        <button type="button" class="btn btn-primary join-class-button" data-class-name="{{ class.class_name  }}">
+  <body>
+    <div class="container">
+      <h1>Welcome to the Dashboard</h1>
+      {% if current_user %}
+      <a href="/" class="btn btn-danger logout-button">Logout</a>
+      {% endif %} {% if classes %}
+      <h2>Your Classes</h2>
+      <ul class="list-group">
+        {% for class in classes %}
+        <li class="list-group-item">
+          <strong>Class Name:</strong> {{ class.class_name }}<br />
+          <strong>Created Date:</strong> {{ class.created_date }}<br />
+          <strong>Start Time:</strong> {{ class.start_time }}<br />
+          <strong>End Time:</strong> {{ class.end_time }}<br />
+          <strong>Meeting Link:</strong>
+          <a href="{{ class.meet_link }}" target="_blank"
+            >{{ class.meet_link }}</a
+          ><br />
+          {% if current_user and current_user.role == "student" %}
+          <strong>QR Code:</strong>
+          <img
+            src="{{ url_for('serve_qr_code_image', image_name=class.qr_code_path.split('/')[-1]) }}"
+            alt="QR Code"
+            class="img-fluid"
+          /><br />
+          {% endif %}
+          <strong>Section:</strong> {{ class.section }}<br />
+          <strong>Branch:</strong> {{ class.branch }}<br />
+          <strong>Created By:</strong> {{ class.created_by }}<br />
+          {% if current_user and current_user.role == "student" %}
+        <button type="button" class="btn btn-primary join-class-button" data-class-name="{{ class.class_name }}">
           Join
         </button>
         {% endif %}
@@ -91,7 +88,8 @@
     </ul>
     {% else %}
     <p>No classes found.</p>
-    {% endif %} {% if current_user and (current_user.role == "teacher") %}
+    {% endif %} {% if current_user and (current_user.role == "teacher" or
+    current_user.role == "admin") %}
     <h2 style="margin-top: 50px;">Create a Class</h2>
     <form id="create-class-form" method="POST">
       <div class="form-group">
@@ -99,37 +97,67 @@
         <input type="text" id="class_name" name="class_name" class="form-control" required />
       </div>
 
-      <div class="form-group">
-        <label for="start_time">Start Time:</label>
-        <input type="datetime-local" id="start_time" name="start_time" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="start_time">Start Time:</label>
+          <input
+            type="datetime-local"
+            id="start_time"
+            name="start_time"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="end_time">End Time:</label>
-        <input type="datetime-local" id="end_time" name="end_time" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="end_time">End Time:</label>
+          <input
+            type="datetime-local"
+            id="end_time"
+            name="end_time"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="meet_link">Meeting Link:</label>
-        <input type="text" id="meet_link" name="meet_link" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="meet_link">Meeting Link:</label>
+          <input
+            type="text"
+            id="meet_link"
+            name="meet_link"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="section">Section:</label>
-        <input type="text" id="section" name="section" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="section">Section:</label>
+          <input
+            type="text"
+            id="section"
+            name="section"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <div class="form-group">
-        <label for="branch">Branch:</label>
-        <input type="text" id="branch" name="branch" class="form-control" required />
-      </div>
+        <div class="form-group">
+          <label for="branch">Branch:</label>
+          <input
+            type="text"
+            id="branch"
+            name="branch"
+            class="form-control"
+            required
+          />
+        </div>
 
-      <button type="submit" class="btn btn-primary">Create Class</button>
-    </form>
-    {% endif %} {% if current_user and current_user.role == "admin" %}
-    <button type="submit" id="createuser" class="btn btn-primary">Add Student or Teacher</button>
-    {% endif %}
-  </div>
+        <button type="submit" class="btn btn-primary">Create Class</button>
+      </form>
+      {% endif %}{% if current_user and current_user.role == "admin" %}
+      <button type="submit" id="createuser" class="btn btn-primary">Add Student or Teacher</button>
+      {% endif %}
+    </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
@@ -148,11 +176,13 @@
         button.addEventListener("click", function () {
           const className = button.getAttribute("data-class-name");
           const token = getTokenFromParams();
+          console.log(className,"className")
           fetch("/join_class", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${token}`,
+
             },
             body: JSON.stringify({ class_name: className, jwt: token }),
           })
@@ -168,9 +198,6 @@
               console.error(error);
             });
         });
-      });
-      document.getElementById("createuser").addEventListener("click", function () {
-        window.location.href = "/adduser";
       });
       createClassForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -207,6 +234,9 @@
         }
       });
     });
+    document.getElementById("createuser").addEventListener("click", function () {
+        window.location.href ="/adduser";
+      });
   </script>
 </body>
 
