@@ -33,7 +33,7 @@ class User:
         if user:
             return
         refresh_token = jwt.encode({
-            'exp': datetime.utcnow() + timedelta(hours=int(os.environ.get('JWT_EXPIRE_TIME'))),
+            'exp': datetime.utcnow() + timedelta(hours=2),
         },
             current_app.config["JWT_SECRET_KEY"],
             algorithm="HS256"

@@ -13,7 +13,7 @@ from flask import redirect
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.77.62:4068"]}}) # add the addresses to allow cors permission
+CORS(app, resources={r"/*": {"origins": ["http://localhost:4068", "http://192.168.11.92:4068"]}}) # add the addresses to allow cors permission
 SECRET_KEY = os.environ.get('SECRET_KEY')
 # print(SECRET_KEY)
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
@@ -141,7 +141,7 @@ def login():
         if user:
             try:
                 payload = {
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=int(os.environ.get('JWT_EXPIRE_TIME'))),
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=2),
                     'id': user["_id"],
                     'name': user["name"],
                     'role': user["role"],
@@ -153,6 +153,7 @@ def login():
                     app.config["JWT_SECRET_KEY"],
                     algorithm="HS256"
                 )
+                # app.logger.info('%s logged in successfully',user)
 
                 return jsonify({
                     "access_token": access_token,
