@@ -282,6 +282,7 @@ class Classes:
                 "_id": class_id,
                 "class_name": class_details["class_name"],
                 # "timings": class_details["start_time"]-class_details["end_time"],
+                "created_date": datetime.now(),
                 "start_time": start_time,
                 "end_time": end_time,
                 "meet_link": class_details["meet_link"],
