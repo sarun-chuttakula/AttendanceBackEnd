@@ -34,7 +34,7 @@ class Dashboard:
         return classes
 
     def get_classes_user(user):
-        classes = list(db.classes.find({"created_by":user["name"]}))
+        classes = list(db.classes.find({"created_by":user}))
         return classes
 
 class User:
