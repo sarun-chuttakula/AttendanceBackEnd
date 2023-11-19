@@ -9,13 +9,14 @@
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
     />
     <style>
-      /* Add your custom CSS styles here */
       .container {
         margin-top: 20px;
+        animation: fadeIn 1s ease-in-out;
       }
 
       h1 {
         color: #333;
+        animation: bounce 1s ease-in-out;
       }
 
       .list-group {
@@ -25,29 +26,82 @@
       .list-group-item {
         margin-top: 20px;
         padding: 15px;
-        border: 2px solid #706e71;
-        border-radius: 5px;
+        border-radius: 10px; /* Rounded corners */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle box shadow for depth */
+        transition: transform 0.3s ease-in-out;
+      }
+
+      .list-group-item:hover {
+        transform: scale(1.02); /* Scale effect on hover */
       }
 
       .join-class-button {
         margin-top: 10px;
+        animation: fadeIn 1s ease-in-out;
+        background-color: #2ecc71; /* Green color for the join button */
+        color: #fff; /* White text color */
+        border: none;
       }
 
-    .logout-button {
-      position: absolute;
-      top: 30px;
-      right: 50px;
-    }
-    #create-class-form{
-      margin-top: 20px;
-    }
-    input[type="text"],
-    input[type="datetime-local"] {
-      width: 50%; /* You can adjust the width as needed */
-    }
-    /* You can add more custom styles as needed */
-  </style>
-</head>
+      .join-class-button:hover {
+        background-color: #27ae60; /* Darker green on hover */
+      }
+
+      .logout-button {
+        position: absolute;
+        top: 30px;
+        right: 50px;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      #create-class-form {
+        margin-top: 20px;
+        animation: slideIn 1s ease-in-out;
+      }
+
+      input[type="text"],
+      input[type="datetime-local"] {
+        width: 50%;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-30px);
+        }
+        60% {
+          transform: translateY(-15px);
+        }
+      }
+    </style>
+  </head>
 
   <body>
     <div class="container">
@@ -79,23 +133,33 @@
           <strong>Branch:</strong> {{ class.branch }}<br />
           <strong>Created By:</strong> {{ class.created_by }}<br />
           {% if current_user and current_user.role == "student" %}
-        <button type="button" class="btn btn-primary join-class-button" data-class-name="{{ class.class_name }}">
-          Join
-        </button>
-        {% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <p>No classes found.</p>
-    {% endif %} {% if current_user and (current_user.role == "teacher" or
-    current_user.role == "admin") %}
-    <h2 style="margin-top: 50px;">Create a Class</h2>
-    <form id="create-class-form" method="POST">
-      <div class="form-group">
-        <label for="class_name">Class Name:</label>
-        <input type="text" id="class_name" name="class_name" class="form-control" required />
-      </div>
+          <button
+            type="button"
+            class="btn btn-primary join-class-button"
+            data-class-name="{{ class.class_name }}"
+          >
+            Join
+          </button>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No classes found.</p>
+      {% endif %} {% if current_user and (current_user.role == "teacher" or
+      current_user.role == "admin") %}
+      <h2 style="margin-top: 50px">Create a Class</h2>
+      <form id="create-class-form" method="POST">
+        <div class="form-group">
+          <label for="class_name">Class Name:</label>
+          <input
+            type="text"
+            id="class_name"
+            name="class_name"
+            class="form-control"
+            required
+          />
+        </div>
 
         <div class="form-group">
           <label for="start_time">Start Time:</label>
@@ -152,92 +216,105 @@
           />
         </div>
 
-        <button type="submit" class="btn btn-primary">Create Class</button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          style="margin-bottom: 10px"
+        >
+          Create Class
+        </button>
       </form>
       {% endif %}{% if current_user and current_user.role == "admin" %}
-      <button type="submit" id="createuser" class="btn btn-primary">Add Student or Teacher</button>
+      <button
+        type="submit"
+        id="createuser"
+        class="btn btn-primary"
+        style="margin-bottom: 10px"
+      >
+        Add Student or Teacher
+      </button>
       {% endif %}
     </div>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Function to extract the token from the query parameters
-      function getTokenFromParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get("token");
-      }
-      const joinButtons = document.querySelectorAll(".join-class-button");
-      const createClassForm = document.getElementById("create-class-form");
-
-      joinButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-          const className = button.getAttribute("data-class-name");
-          const token = getTokenFromParams();
-          console.log(className,"className")
-          fetch("/join_class", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`,
-
-            },
-            body: JSON.stringify({ class_name: className, jwt: token }),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.meeting_link) {
-                window.location.href = result.meeting_link;
-              } else if (result.error) {
-                alert(result.error);
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        });
-      });
-      createClassForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        const formData = new FormData(createClassForm);
-        const classData = {};
-        formData.forEach((value, key) => {
-          classData[key] = value;
-        });
-
-        const token = getTokenFromParams(); // Get the token from the URL
-
-        if (token) {
-          fetch("/create_class", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Include the token as a Bearer token
-            },
-            body: JSON.stringify(classData),
-          })
-            .then((response) => response.json())
-            .then((result) => {
-              if (result.message) {
-                alert(result.message);
-              } else if (result.error) {
-                alert(result.error);
-              }
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        } else {
-          alert("Token is missing in the URL.");
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Function to extract the token from the query parameters
+        function getTokenFromParams() {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get("token");
         }
-      });
-    });
-    document.getElementById("createuser").addEventListener("click", function () {
-        window.location.href ="/adduser";
-      });
-  </script>
-</body>
+        const joinButtons = document.querySelectorAll(".join-class-button");
+        const createClassForm = document.getElementById("create-class-form");
 
+        joinButtons.forEach(function (button) {
+          button.addEventListener("click", function () {
+            const className = button.getAttribute("data-class-name");
+            const token = getTokenFromParams();
+            console.log(className, "className");
+            fetch("/join_class", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ class_name: className, jwt: token }),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.meeting_link) {
+                  window.location.href = result.meeting_link;
+                } else if (result.error) {
+                  alert(result.error);
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          });
+        });
+        createClassForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          const formData = new FormData(createClassForm);
+          const classData = {};
+          formData.forEach((value, key) => {
+            classData[key] = value;
+          });
+
+          const token = getTokenFromParams(); // Get the token from the URL
+
+          if (token) {
+            fetch("/create_class", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`, // Include the token as a Bearer token
+              },
+              body: JSON.stringify(classData),
+            })
+              .then((response) => response.json())
+              .then((result) => {
+                if (result.message) {
+                  alert(result.message);
+                } else if (result.error) {
+                  alert(result.error);
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+          } else {
+            alert("Token is missing in the URL.");
+          }
+        });
+      });
+      document
+        .getElementById("createuser")
+        .addEventListener("click", function () {
+          window.location.href = "/adduser";
+        });
+    </script>
+  </body>
 </html>
