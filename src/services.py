@@ -21,12 +21,28 @@ print(client)
 db = client.myDatabase
 
 
+class Dashboard:
+    def __init__(self):
+        return
+    
+    def get_classes():
+        classes= list(db.classes.find())
+        return classes
+    
+    def get_classes_branch(branch):
+        classes = list(db.classes.find({"branch":branch}))
+        return classes
+
+    def get_classes_user(user):
+        classes = list(db.classes.find({"created_by":user["name"]}))
+        return classes
+
 class User:
     # User Model
     def __init__(self):
         return
 
-    def create_user(self, name="", email="", password="", section="", role="", branch="",rollno=""):
+    def create_user(self, name="", email="", password="", section="", role="", branch=""):
         # Create a new user
         print("createuserfn")
         user = self.get_user_by_email(email)
@@ -172,28 +188,8 @@ class User:
             return
         user.pop("password")
         return user
-
-    def generate_qrcode(self, current_user="", token="", req=""):
-        # print(current_user)
-        data = "Hi this is bhargav & this is sample qrimg$&" + \
-            current_user["_id"] + "$&" + \
-            current_user["name"] + "$&" + req + "$&" + token
-        img = qrcode.make(data)
-        img_directory = os.path.join(os.getcwd(), "imgs")
-        os.makedirs(img_directory, exist_ok=True)
-        img_name = current_user["_id"] + "qrcode.png"
-        img_path = os.path.join(img_directory, img_name)
-        img.save(img_path)
-        return img_name
     
     def get_user_email_from_device(self,request):
-    # You may implement logic here to obtain the user's email from the device.
-    # For example, if the email is stored in a cookie:
-    # user_email = request.cookies.get('user_email')
-    # Or if it's stored in a session:
-    # user_email = request.session.get('user_email')
-
-    # For this example, let's assume you retrieve the email from a request header
         user_email = request.headers.get('X-User-Email')
 
         return user_email
@@ -272,6 +268,19 @@ class Classes:
         except Exception as e:
             print(f"Failed to generate QR code: {str(e)}")
             return None
+
+    # def generate_qrcode(self, current_user="", token="", req=""):
+    #     # print(current_user)
+    #     data = "Hi this is bhargav & this is sample qrimg$&" + \
+    #         current_user["_id"] + "$&" + \
+    #         current_user["name"] + "$&" + req + "$&" + token
+    #     img = qrcode.make(data)
+    #     img_directory = os.path.join(os.getcwd(), "imgs")
+    #     os.makedirs(img_directory, exist_ok=True)
+    #     img_name = current_user["_id"] + "qrcode.png"
+    #     img_path = os.path.join(img_directory, img_name)
+    #     img.save(img_path)
+    #     return img_name
 
     def store_class_in_database(self, user,class_details, qr_code_path):
         try:

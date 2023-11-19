@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from validate import validate_email_and_password, validate_user
-from services import User, Server, Classes,db
+from services import User, Server, Classes, db, Dashboard
 from auth_middleware import jwttoken_required, role_required
 from flask import redirect
 
@@ -52,13 +52,13 @@ def dashboard():
         user = User().get_user_by_id(decoded_token["id"])
         if user:
             if user["role"] == "student":
-                classes = list(db.classes.find({"branch":user["branch"]}))
+                classes = Dashboard.get_classes_branch(user["branch"])
                 return render_template("dashboard.html", classes=classes, current_user=user)
             elif user["role"] =="teacher":
-                classes = list(db.classes.find({"created_by":user["name"]}))
+                classes = Dashboard.get_classes_user(user["name"])
                 return render_template("dashboard.html", classes=classes, current_user=user)
             else:
-                classes = list(db.classes.find())
+                classes = Dashboard.get_classes()
                 return render_template("dashboard.html", classes=classes, current_user=user)
 
         return jsonify({
@@ -212,24 +212,24 @@ def get_current_user(current_user):
     }), 200
 
 
-@app.route("/qrcode", methods=["GET"])
-@jwttoken_required
-@role_required(allowed_roles=["admin", "teacher"])
-def qr_generate(current_user):
-    payload = {
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10),
-        'user_id': current_user["_id"],
-        'name': current_user["name"]
-    }
-    token = jwt.encode(
-        payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
-    img = User().generate_qrcode(current_user=current_user, token=token)
+# @app.route("/qrcode", methods=["GET"])
+# @jwttoken_required
+# @role_required(allowed_roles=["admin", "teacher"])
+# def qr_generate(current_user):
+#     payload = {
+#         'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=10),
+#         'user_id': current_user["_id"],
+#         'name': current_user["name"]
+#     }
+#     token = jwt.encode(
+#         payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
+#     img = Classes().generate_qrcode(current_user=current_user, token=token)
 
-    img_url = f"http://{Server().get_server_ip()}:{4068}/imgs/{img}"
-    return jsonify({
-        "message": "Successfully generated QR code",
-        "img_url": img_url
-    }), 200
+#     img_url = f"http://{Server().get_server_ip()}:{4068}/imgs/{img}"
+#     return jsonify({
+#         "message": "Successfully generated QR code",
+#         "img_url": img_url
+#     }), 200
 
 
 @app.route("/allusers", methods=["GET"])
